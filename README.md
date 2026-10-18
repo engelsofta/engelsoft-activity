@@ -2,7 +2,7 @@
 
 **Your home. One timeline. No guesswork.**
 
-[![Release](https://img.shields.io/github/v/release/engelsofta/engelsoft-activity)](https://github.com/engelsofta/engelsoft-activity/releases/latest)
+[![Release v0.1.8](https://img.shields.io/badge/release-v0.1.8-c7a56e)](https://github.com/engelsofta/engelsoft-activity/releases/latest)
 [![Checks](https://github.com/engelsofta/engelsoft-activity/actions/workflows/checks.yml/badge.svg)](https://github.com/engelsofta/engelsoft-activity/actions/workflows/checks.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-gold.svg)](LICENSE)
 
