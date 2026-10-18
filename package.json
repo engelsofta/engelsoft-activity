@@ -1,0 +1,11 @@
+{
+  "name": "engelsoft-activity",
+  "version": "0.1.8",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/model.test.js",
+    "test:browser": "node tests/browser.cjs"
+  },
+  "devDependencies": { "playwright": "1.62.1" }
+}

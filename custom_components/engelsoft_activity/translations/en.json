@@ -1,0 +1,1 @@
+{"title":"Engelsoft Activity","config":{"step":{"user":{"title":"Engelsoft Activity","description":"A live timeline of your home in Engelsoft design. Uses the existing Home Assistant logbook without creating additional devices."}},"abort":{"already_configured":"Activity is already configured."}}}

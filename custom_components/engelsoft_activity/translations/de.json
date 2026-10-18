@@ -1,0 +1,1 @@
+{"title":"Engelsoft Activity","config":{"step":{"user":{"title":"Engelsoft Activity","description":"Aktivitäten deines Zuhauses als Live-Zeitleiste im Engelsoft-Design. Verwendet das vorhandene Home-Assistant-Logbuch und legt keine zusätzlichen Geräte an."}},"abort":{"already_configured":"Activity ist bereits eingerichtet."}}}

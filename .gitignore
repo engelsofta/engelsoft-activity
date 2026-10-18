@@ -1,0 +1,12 @@
+node_modules/
+dist/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+test-results/
+playwright-report/
+*.log
+.env
+.env.*
+!.env.example
+screenshots-private/

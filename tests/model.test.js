@@ -1,0 +1,13 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {mergeEvents,filterEvents,histogram,eventAppearance,escapeHTML} from '../custom_components/engelsoft_activity/frontend/model.js';
+const events=[{when:1,entity_id:'light.demo',state:'on',context_id:'demo-a'},{when:2,entity_id:'light.demo',state:'off',context_id:'demo-b'},{when:3,entity_id:'sensor.demo',state:'unavailable'}];
+const meta=e=>({name:e.entity_id,areaId:e.entity_id.startsWith('light.')?'room_a':'room_b',integration:e.entity_id.split('.')[0]});
+const filters={query:'',kind:'all',favorites:[],muted:[],hideMuted:true};
+test('stream replay deduplicates within the window',()=>assert.deepEqual(mergeEvents(events,[events[0]],2000,3000).map(e=>e.when),[3,2]));
+test('multiple selections union within a filter and intersect across filters',()=>{assert.equal(filterEvents(events,{...filters,domain:['light','sensor'],area:['room_a'],entity:['light.demo','sensor.demo']},meta).length,2);assert.equal(filterEvents(events,{...filters,domain:[],area:[],integration:[],entity:[]},meta).length,3);});
+test('muting affects only selected entities and can be disabled',()=>{assert.equal(filterEvents(events,{...filters,muted:['light.demo']},meta).length,1);assert.equal(filterEvents(events,{...filters,muted:['light.demo'],hideMuted:false},meta).length,3);});
+test('time focus uses exclusive interval end',()=>assert.deepEqual(histogram(events,0,3000,3).map(b=>b.count),[0,1,1]));
+test('connectivity off is offline; ordinary switch off is inactive',()=>{assert.equal(eventAppearance({entity_id:'binary_sensor.demo',state:'off'},{attributes:{device_class:'connectivity'}}).tone,'offline');assert.equal(eventAppearance({entity_id:'switch.demo',state:'off'}).tone,'off');});
+test('safety sensors use alert colors',()=>{for(const device_class of ['smoke','gas','moisture','problem','safety','tamper'])assert.equal(eventAppearance({entity_id:'binary_sensor.demo',state:'on'},{attributes:{device_class}}).tone,'alert');});
+test('HTML content is escaped',()=>assert.equal(escapeHTML('<script>"demo"</script>'),'&lt;script&gt;&quot;demo&quot;&lt;/script&gt;'));
