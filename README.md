@@ -1,68 +1,73 @@
 # Engelsoft Activity
 
-**Dein Zuhause. Eine Zeitleiste. Kein Rätselraten.**
+**Your home. One timeline. No guesswork.**
 
 [![Release](https://img.shields.io/github/v/release/engelsofta/engelsoft-activity)](https://github.com/engelsofta/engelsoft-activity/releases/latest)
 [![Checks](https://github.com/engelsofta/engelsoft-activity/actions/workflows/checks.yml/badge.svg)](https://github.com/engelsofta/engelsoft-activity/actions/workflows/checks.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-gold.svg)](LICENSE)
 
-Engelsoft Activity ist eine lokale Home-Assistant-Integration mit eigener Aktivitätsansicht. Sie verwendet das vorhandene HA-Logbuch und erscheint in der Sidebar als **Activity**.
+Engelsoft Activity is a local Home Assistant integration that turns your existing logbook into a clear, searchable timeline. It appears in the sidebar as **Activity**.
 
-## Funktionen
+![Engelsoft Activity demo with synthetic room names, devices and activity events](docs/images/activity-demo.png)
 
-- Live-Zeitleiste mit klaren Zustandsfarben: Ein/Aus, Online/Offline, Hinweise und Alarme.
-- Engelsoft-Glasdesign, Hell-/Dunkelmodus und responsive Darstellung ohne mobile Überschrift.
-- Durchsuchbare Mehrfachfilter für Räume, Entitätstypen, Integrationen und einzelne Entitäten.
-- Favoriten und Ruhefilter für gezielt ausgeblendete Entitäten.
-- Aktivitätsverteilung mit anklickbaren Zeitabschnitten und Rangliste der aktivsten Entitäten.
-- Ereignisdetails mit gemeinsamem HA-Kontext und direktem Zugriff auf Entitätsdetails.
-- Zeiträume von 1, 3, 6, 12 oder 24 Stunden; Vor-/Zurückblättern und CSV-Export.
-- Neueste Einträge zuerst, ältere Daten im Hintergrund; Ladeanzeige ohne Layoutsprung.
+*Illustrative desktop demo using entirely synthetic devices, rooms and events. No data from a real home is shown. The activity interface currently uses German labels; setup is available in English and German.*
 
-## Installation über HACS
+## Features
 
-Dieses Repository ist als **benutzerdefiniertes Repository** vorbereitet. Es ist nicht automatisch Teil des HACS-Standardkatalogs.
+- Live timeline with distinct colors for on/off, online/offline, warnings and alarms.
+- Engelsoft glass design, light and dark themes, and a responsive mobile layout.
+- Searchable multi-select filters for rooms, entity types, integrations and individual entities.
+- Favorites and a local quiet filter for hiding selected entities.
+- Clickable activity histogram and a ranking of the most active entities.
+- Event details with shared HA context and access to entity details.
+- 1, 3, 6, 12 and 24-hour windows, previous/next navigation and CSV export.
+- Recent events first, background history loading and a loading indicator without layout shifts.
 
-1. In HACS die benutzerdefinierten Repositories öffnen.
-2. `https://github.com/engelsofta/engelsoft-activity` als Typ **Integration** hinzufügen.
-3. **Engelsoft Activity** herunterladen und Home Assistant neu starten.
-4. Unter **Einstellungen → Geräte & Dienste → Integration hinzufügen** nach **Engelsoft Activity** suchen.
-5. **Activity** in der Sidebar öffnen.
+## Install with HACS
 
-Getestete Ausgangsversion: Home Assistant **2026.10**. Das HA-Logbuch muss aktiv sein.
+Add this repository as a **custom repository**. It is not automatically included in the HACS default catalog.
 
-## Manuelle Installation – nur Laufzeitdateien
+1. Open **Custom repositories** in HACS.
+2. Add `https://github.com/engelsofta/engelsoft-activity` with type **Integration**.
+3. Download **Engelsoft Activity** and restart Home Assistant.
+4. Go to **Settings → Devices & services → Add integration** and search for **Engelsoft Activity**.
+5. Open **Activity** in the sidebar.
 
-Das Release enthält zwei schlanke Archive:
+Tested baseline: Home Assistant **2026.10**. The HA logbook must be enabled.
 
-- **Engelsoft-Activity-0.1.8.zip:** enthält nur `custom_components/engelsoft_activity/…` und kann in den HA-Konfigurationsordner entpackt werden.
-- **engelsoft_activity.zip:** enthält dieselben Integrationsdateien direkt an der Archivwurzel und wird für HACS verwendet. Manuell nur nach `custom_components/engelsoft_activity/` entpacken.
+## Manual installation — runtime files only
 
-Danach Home Assistant neu starten und die Integration wie oben hinzufügen. Es ist keine YAML-Konfiguration nötig. Bei Updates Home Assistant neu starten und die Browseransicht vollständig neu laden.
+The [release](https://github.com/engelsofta/engelsoft-activity/releases/latest) provides two small archives:
 
-**Keine GitHub-Dateien auf HA:** Die Release-Pakete enthalten keine `.git`- oder `.github`-Ordner, Tests, Screenshots, Dokumentation, Werkzeuge, Logs oder Backups. Nicht den gesamten Repository-Quellcode in die HA-Konfiguration kopieren.
+- **Engelsoft-Activity-0.1.8.zip:** contains only `custom_components/engelsoft_activity/…`. Extract it into your HA configuration directory.
+- **engelsoft_activity.zip:** contains the same runtime files at the archive root and is intended for HACS. For manual installation, extract it only into `custom_components/engelsoft_activity/`.
 
-## Filter bedienen
+Restart HA, then add the integration as described above. No YAML is required. After updates, restart HA and fully reload the browser page.
 
-Jede Filterliste enthält eine Suche und Checkboxen. Mehrere Werte innerhalb eines Filters bedeuten **ODER**; unterschiedliche Filter werden mit **UND** kombiniert. Ohne Auswahl sind alle Werte zugelassen.
+**Keep repository files off HA:** installation archives exclude Git metadata, workflows, tests, screenshots, documentation, tools, logs and backups. Do not copy the entire repository into your HA configuration directory.
 
-Beispiel: zwei Räume + eine Integration + fünf Entitäten zeigt Aktivitäten dieser fünf Entitäten, soweit sie zur ausgewählten Integration und zu einem der beiden Räume gehören.
+## Using the filters
 
-Der Stern merkt Entitäten als Favoriten. Die durchgestrichene Glocke blendet eine Entität bei aktivem Ruhefilter aus. Unter **Einblicke → Ausgeblendete Entitäten** lässt sie sich wieder einblenden. Dies ändert keine HA-Aufzeichnung, Geräte oder Benachrichtigungen.
+Each filter includes search and checkboxes. Multiple selections within a filter use **OR**; different filters combine with **AND**. An empty selection includes all values.
 
-Die Kennzahlen „Filterbasis“ berücksichtigen die Such- und Mehrfachfilter, ohne Kategorie und Histogramm-Zeitfokus. Entitätsanzahl, Zeitleiste und Export folgen der aktuellen Auswahl.
+For example, two rooms + one integration + five entities shows events for those entities that belong to the selected integration and either room.
 
-## Datenschutz und Grenzen
+The star marks favorites. The crossed-out bell hides an entity while the quiet filter is enabled. Restore hidden entities under **Einblicke → Ausgeblendete Entitäten** (Insights → Hidden entities). This does not change HA recording, devices or notifications.
 
-- Kein eigener Cloud-Dienst, keine Telemetrie und keine Zugangsdaten in der Integration. Logbuchabfragen laufen über die bestehende authentifizierte HA-Verbindung.
-- Favoriten und ausgeblendete Entitäten liegen im Browser, getrennt nach HA-Benutzer. Ein kurzlebiger Cache liegt ausschließlich im Speicher der aktuellen Browser-Sitzung.
-- CSV-Dateien werden nur auf ausdrücklichen Klick lokal heruntergeladen und können persönliche Logbuchdaten enthalten.
-- Das integrierte Hintergrundbild wird lokal ausgeliefert; es gibt dafür keine externen Bildabrufe.
-- Verfügbare Zeiträume folgen der HA-Aufbewahrung und den Logbuchausschlüssen. Raumzuordnungen stammen aus dem aktuellen Register, nicht aus historischen Raumzuordnungen.
-- Registerberechtigungen hängen vom HA-Konto ab; bei fehlenden Rechten bleibt die Zeitleiste verfügbar, einzelne Zusatzfilter können unvollständig sein.
-- Ein gemeinsamer Ereigniskontext stammt von HA und ist keine eigene Ursachenanalyse. Die Ansicht ist derzeit deutschsprachig; Setup-Texte gibt es auf Deutsch und Englisch.
+Counters labeled **Filterbasis** (filter base) follow search and multi-select filters, excluding the category and histogram time focus. Entity count, timeline and export follow the current selection.
 
-## Entwicklung und Prüfen
+## Privacy and limitations
+
+- No separate cloud service, telemetry or embedded credentials. Requests use your existing authenticated HA connection.
+- Favorites and hidden entities are stored in the browser, separated by HA user. A short-lived cache exists only in session memory.
+- CSV downloads are explicitly requested and may contain personal logbook data.
+- The bundled background is served locally without external image requests.
+- History follows HA retention and logbook exclusions. Room assignments use the current registry, not historical assignments.
+- Registry access depends on HA permissions. The timeline remains available if enrichment fails, but some filters may be incomplete.
+- Shared context comes from HA and is not independent root-cause analysis.
+- The activity interface is currently German-only; setup supports English and German.
+
+## Development
 
 ```sh
 npm ci
@@ -72,14 +77,14 @@ npm run test:browser
 python scripts/package.py
 ```
 
-Die Browserprüfung verwendet ausschließlich künstliche Beispieldaten. Sie ersetzt keinen Test am echten HA-System. Der Paketbau nutzt eine explizite Dateiliste und prüft Archivinhalt sowie Versionsgleichheit. GitHub Actions prüft zusätzlich die Integration mit Hassfest.
+Browser tests use synthetic data and do not replace testing on a real HA instance. The package builder checks an explicit file allowlist, archive contents and version consistency. GitHub Actions also runs Hassfest.
 
-Screenshots können später ergänzt werden. Vorher echte Geräte-, Personen- und Raumnamen sowie IDs anonymisieren.
+README images are documentation only and excluded from both installation archives.
 
-## Unterstützung
+## Support
 
-[Fehler melden](https://github.com/engelsofta/engelsoft-activity/issues) · [Releases](https://github.com/engelsofta/engelsoft-activity/releases)
+[Report an issue](https://github.com/engelsofta/engelsoft-activity/issues) · [Releases](https://github.com/engelsofta/engelsoft-activity/releases)
 
-Bitte keine vollständigen HA-Logs, Zugangsdaten oder privaten Konfigurationen in öffentliche Issues stellen.
+Do not post full HA logs, credentials or private configuration files in public issues.
 
-MIT-Lizenz – siehe [LICENSE](LICENSE).
+Released under the [MIT License](LICENSE).

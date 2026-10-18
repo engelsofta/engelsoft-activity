@@ -1,3 +1,5 @@
+**Your home has a timeline. Your light switch has an alibi.**
+
 Engelsoft Activity: a responsive live activity timeline for Home Assistant.
 
 Includes searchable multi-select filters, state colors, favorites, a local mute list, histogram, context details and CSV export.
