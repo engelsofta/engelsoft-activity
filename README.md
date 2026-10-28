@@ -7,6 +7,7 @@
 [![Release v0.1.18](https://img.shields.io/badge/release-v0.1.18-c7a56e)](https://github.com/engelsofta/engelsoft-activity/releases/latest)
 [![Checks](https://github.com/engelsofta/engelsoft-activity/actions/workflows/checks.yml/badge.svg)](https://github.com/engelsofta/engelsoft-activity/actions/workflows/checks.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-gold.svg)](LICENSE)
+[![Downloads](https://img.shields.io/github/downloads/engelsofta/engelsoft-activity/total?color=c7a56e)](https://github.com/engelsofta/engelsoft-activity/releases)
 
 Engelsoft Activity is a local Home Assistant integration that turns your existing logbook into a clear, searchable timeline. It appears in the sidebar as **Activity**.
 
