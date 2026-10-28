@@ -2,7 +2,7 @@
 
 **Your home. One timeline. No guesswork.**
 
-[![Release v0.1.8](https://img.shields.io/badge/release-v0.1.8-c7a56e)](https://github.com/engelsofta/engelsoft-activity/releases/latest)
+[![Release v0.1.17](https://img.shields.io/badge/release-v0.1.17-c7a56e)](https://github.com/engelsofta/engelsoft-activity/releases/latest)
 [![Checks](https://github.com/engelsofta/engelsoft-activity/actions/workflows/checks.yml/badge.svg)](https://github.com/engelsofta/engelsoft-activity/actions/workflows/checks.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-gold.svg)](LICENSE)
 
@@ -11,6 +11,12 @@ Engelsoft Activity is a local Home Assistant integration that turns your existin
 ![Engelsoft Activity demo with synthetic room names, devices and activity events](docs/images/activity-demo.png)
 
 *Illustrative desktop demo using entirely synthetic devices, rooms and events. No data from a real home is shown. The activity interface currently uses German labels; setup is available in English and German.*
+
+### Light mode
+
+![Engelsoft Activity light mode with synthetic rooms, devices and events](docs/images/activity-light.png)
+
+*Privacy-safe light-mode preview generated from the actual panel with entirely fictional data. Pearl glass cards, a locally bundled abstract wallpaper and champagne-gold accents keep the timeline readable. No private screenshot or household data is published.*
 
 ## Features
 
@@ -39,7 +45,7 @@ Tested baseline: Home Assistant **2026.10**. The HA logbook must be enabled.
 
 The [release](https://github.com/engelsofta/engelsoft-activity/releases/latest) provides two small archives:
 
-- **Engelsoft-Activity-0.1.8.zip:** contains only `custom_components/engelsoft_activity/…`. Extract it into your HA configuration directory.
+- **Engelsoft-Activity-0.1.17.zip:** contains only `custom_components/engelsoft_activity/…`. Extract it into your HA configuration directory.
 - **engelsoft_activity.zip:** contains the same runtime files at the archive root and is intended for HACS. For manual installation, extract it only into `custom_components/engelsoft_activity/`.
 
 Restart HA, then add the integration as described above. No YAML is required. After updates, restart HA and fully reload the browser page.
@@ -54,7 +60,9 @@ For example, two rooms + one integration + five entities shows events for those 
 
 The star marks favorites. The crossed-out bell hides an entity while the quiet filter is enabled. Restore hidden entities under **Einblicke → Ausgeblendete Entitäten** (Insights → Hidden entities). This does not change HA recording, devices or notifications.
 
-Counters labeled **Filterbasis** (filter base) follow search and multi-select filters, excluding the category and histogram time focus. Entity count, timeline and export follow the current selection.
+The **Im Zeitraum** counters and **Hinweis-Ereignisse** follow search and multi-select filters, excluding the category and histogram time focus. **Nach Filterung**, the timeline and export follow the current selection. Hint events count historical unknown/unavailable events, not currently faulty devices.
+
+On small screens, expand **Filter** to change selections; active filter chips remain visible and can be removed individually. Reset is enabled when a filter is active. The quiet filter is highlighted only when enabled with at least one hidden entity. Histogram counts appear on hover, keyboard focus or selection; each bar also has an accessible count and time-range label.
 
 ## Privacy and limitations
 

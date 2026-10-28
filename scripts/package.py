@@ -12,6 +12,7 @@ RUNTIME_FILES = (
     "__init__.py", "config_flow.py", "const.py", "manifest.json", "strings.json",
     "frontend/background.css", "frontend/dom-update.js", "frontend/model.js",
     "frontend/panel.js", "frontend/styles.css", "translations/de.json", "translations/en.json",
+    "frontend/activity-light-background.png",
 )
 PRIVATE_PATTERNS = (
     r"192\.168\.\d+\.\d+", r"\b10\.\d+\.\d+\.\d+\b",
