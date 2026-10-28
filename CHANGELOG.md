@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.18 — 2026-10-28
+
+**Now with a face. Still knows what your lights did last night.**
+
+- Added a new gold-and-olive Activity logo combining a house with an event pulse.
+- Fixed Home Assistant integration-card branding: PNG icons now ship inside `custom_components/engelsoft_activity/brand/`, rather than only at the repository root.
+- Included 256 px and 512 px icons in both HACS and manual-installation archives.
+- Package validation checks the brand images' PNG signatures and exact dimensions.
+- Home Assistant uses the square icon as the logo fallback in both themes.
+
 ## 0.1.17 — 2026-10-28
 
 **Your home spills the tea. The dashboard serves champagne.**

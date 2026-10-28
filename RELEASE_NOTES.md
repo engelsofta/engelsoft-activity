@@ -1,20 +1,9 @@
-**Your home spills the tea. The dashboard serves champagne.**
+**Now with a face. Still knows what your lights did last night.**
 
-Engelsoft Activity 0.1.17 gives your home's timeline a brighter outfit: an original light-mode wallpaper, pearl glass cards, champagne-gold charts and clearer typography.
+Engelsoft Activity 0.1.18 introduces a new gold-and-olive house-and-pulse logo and fixes the missing icon under Settings → Devices & services.
 
-- Cleaner light mode with softer shadows, subtle status colors and improved event/status alignment.
-- Histogram counts appear on hover, keyboard focus or selection.
-- Clearer metric labels, active-filter reset styling and a neutral quiet filter when nothing is hidden.
-- Collapsible mobile filters with removable selection chips.
-- Server-clock alignment and a single retry for invalid live-stream start times.
-- README light-mode preview uses entirely fictional data.
+The integration now bundles `brand/icon.png` (256 px) and `brand/icon@2x.png` (512 px) in the correct runtime folder. Both installation archives include these images, and packaging verifies their format and dimensions. Home Assistant falls back to the square icon when a separate wordmark is absent.
 
-See [CHANGELOG.md](https://github.com/engelsofta/engelsoft-activity/blob/v0.1.17/CHANGELOG.md) for details. This release includes the accumulated local changes since 0.1.8.
+Update via HACS, or extract `Engelsoft-Activity-0.1.18.zip` into your HA configuration directory. Restart Home Assistant and fully reload the browser after updating so the new branding is discovered.
 
-**Manual installation:** extract `Engelsoft-Activity-0.1.17.zip` into your Home Assistant configuration directory.
-
-**HACS:** use the custom integration repository; `engelsoft_activity.zip` contains only the integration runtime files.
-
-Restart Home Assistant after updating, then fully reload the browser page. The interface is currently German; setup supports English and German.
-
-Documentation screenshots, development tools, tests and private configuration are excluded from both installation archives.
+Branding is packaged and validated locally; its appearance in a running Home Assistant instance has not been verified as part of this release.

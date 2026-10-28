@@ -12,7 +12,7 @@ RUNTIME_FILES = (
     "__init__.py", "config_flow.py", "const.py", "manifest.json", "strings.json",
     "frontend/background.css", "frontend/dom-update.js", "frontend/model.js",
     "frontend/panel.js", "frontend/styles.css", "translations/de.json", "translations/en.json",
-    "frontend/activity-light-background.png",
+    "frontend/activity-light-background.png", "brand/icon.png", "brand/icon@2x.png",
 )
 PRIVATE_PATTERNS = (
     r"192\.168\.\d+\.\d+", r"\b10\.\d+\.\d+\.\d+\b",
@@ -46,6 +46,12 @@ def main():
     actual = {p.relative_to(COMPONENT).as_posix() for p in COMPONENT.rglob("*") if p.is_file() and "__pycache__" not in p.parts}
     if actual != set(RUNTIME_FILES):
         raise ValueError(f"Runtime inventory differs: {actual.symmetric_difference(RUNTIME_FILES)}")
+    for name, size in (("icon.png", 256), ("icon@2x.png", 512)):
+        image = (COMPONENT / "brand" / name).read_bytes()
+        if (image[:8] != b"\x89PNG\r\n\x1a\n" or
+                int.from_bytes(image[16:20], "big") != size or
+                int.from_bytes(image[20:24], "big") != size):
+            raise ValueError(f"Invalid integration brand image: {name}")
     for folder in (COMPONENT, ROOT / "tests"):
         for file in folder.rglob("*"):
             if file.is_file() and file.suffix in (".js", ".cjs", ".py", ".json", ".css"):

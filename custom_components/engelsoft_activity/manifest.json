@@ -15,5 +15,5 @@
   "integration_type": "service",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/engelsofta/engelsoft-activity/issues",
-  "version": "0.1.17"
+  "version": "0.1.18"
 }
