@@ -1,9 +1,19 @@
-**Now with a face. Still knows what your lights did last night.**
+**Your home has gossip. We brought a timeline.**
 
-Engelsoft Activity 0.1.18 introduces a new gold-and-olive house-and-pulse logo and fixes the missing icon under Settings → Devices & services.
+Engelsoft Activity 1.0.0 is the first Marketplace-focused release of an alternative to Home Assistant's built-in Activity view.
 
-The integration now bundles `brand/icon.png` (256 px) and `brand/icon@2x.png` (512 px) in the correct runtime folder. Both installation archives include these images, and packaging verifies their format and dimensions. Home Assistant falls back to the square icon when a separate wordmark is absent.
+Requires Home Assistant 2026.11 or newer. Install through the Marketplace link in the README, add Engelsoft Activity under Settings → Devices & services, and open Activity in the sidebar. After updating an existing installation, restart Home Assistant and reload the browser.
 
-Update via HACS, or extract `Engelsoft-Activity-0.1.18.zip` into your HA configuration directory. Restart Home Assistant and fully reload the browser after updating so the new branding is discovered.
+### Changes
 
-Branding is packaged and validated locally; its appearance in a running Home Assistant instance has not been verified as part of this release.
+- Open with the last hour selected.
+- Simplified search and time navigation, with room/entity filters and favorites in a second row.
+- Entity types and integrations grouped under Further filters; active selections can be removed individually or cleared together.
+- Hidden entities are managed through Insights, with controls shown only when needed.
+- Uniform event rows, neutral status text and icons, subtle separators and a quieter list background. Faults retain red text.
+- Row actions appear on hover or keyboard focus; selected favorites and touch controls stay visible.
+- Short Shelly button labels; original messages remain in event details and exports.
+- Wallpaper fills the viewport even with short or empty timelines; footer text removed.
+- Concise Marketplace installation instructions, runtime-only release archives and automated validation.
+
+The interface currently uses German labels. Setup supports English and German. Preview images use fictional data; the integration does not include household configuration or telemetry.

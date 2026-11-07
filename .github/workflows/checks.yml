@@ -21,6 +21,7 @@ jobs:
       - run: npm test
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
+      - run: python scripts/privacy_audit.py
       - run: python scripts/package.py
       - run: python -m compileall -q custom_components
   hassfest:
@@ -28,3 +29,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: home-assistant/actions/hassfest@master
+
+  marketplace:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate Marketplace requirements
+        uses: hacs/action@main
+        with:
+          category: integration
+          comment: false

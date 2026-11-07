@@ -16,4 +16,4 @@ jobs:
       - name: Publish runtime archives
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$GITHUB_REF_NAME" dist/*.zip --verify-tag --title "Engelsoft Activity $GITHUB_REF_NAME" --notes-file RELEASE_NOTES.md
+        run: gh release create "$GITHUB_REF_NAME" dist/*.zip --verify-tag --title "$GITHUB_REF_NAME — Your home has gossip. We brought a timeline." --notes-file RELEASE_NOTES.md

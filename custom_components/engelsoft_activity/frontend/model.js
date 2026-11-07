@@ -10,6 +10,13 @@ export function mergeEvents(existing, incoming, start, end) {
   return [...map.values()].sort((a,b)=>timestamp(b)-timestamp(a));
 }
 export const domainOf = e => e.entity_id?.split('.')[0] || e.domain || 'event';
+// Short labels for known Shelly button events; retain unknown messages verbatim.
+export function conciseEventLabel(event, fallback) {
+  const message=String(event.message??'');
+  const match=message.match(/^['"]?(single_push|double_push|triple_push|long_push|btn_up|btn_down)['"]? click event for .+ was fired\s*$/i);
+  if(match)return ({single_push:'Taste kurz gedrückt',double_push:'Taste doppelt gedrückt',triple_push:'Taste dreifach gedrückt',long_push:'Taste lange gedrückt',btn_up:'Taste losgelassen',btn_down:'Taste gedrückt'})[match[1].toLowerCase()];
+  return fallback;
+}
 export function category(e) {
   if (['unavailable','unknown'].includes(e.state)) return 'attention';
   if (['automation','script','scene'].includes(domainOf(e))) return 'automation';

@@ -20,7 +20,6 @@ PRIVATE_PATTERNS = (
     r"[A-Za-z]:[\\/]Users[\\/]", r"/Users/", r"/home/[a-zA-Z0-9_-]+/",
     r"gh[pousr]_[A-Za-z0-9]{20,}", r"github_pat_[A-Za-z0-9_]{20,}",
     r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
-    r"(?i)(?:bepacom_1_|marstek_venus|sonosarc|dwd_precipitation_forecast_home)",
 )
 
 def scan_text(name, text):

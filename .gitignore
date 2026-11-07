@@ -10,3 +10,8 @@ playwright-report/
 .env.*
 !.env.example
 screenshots-private/
+
+filter-desktop.png
+filter-mobile.png
+audit-output/
+release-repo/
