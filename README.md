@@ -1,6 +1,22 @@
-# Engelsoft Activity
+<p align="center">
+  <img src="custom_components/engelsoft_activity/brand/icon@2x.png" alt="Engelsoft Activity logo" width="210">
+</p>
 
-**Your home has gossip. We brought a timeline.**
+<h1 align="center">Engelsoft Activity</h1>
+
+<p align="center">
+  <strong>Your home has gossip. We brought a timeline.</strong><br>
+  A calmer view of your smart home's everyday adventures.
+</p>
+
+<p align="center">
+  <a href="https://github.com/engelsofta/engelsoft-activity/releases/latest"><img src="https://img.shields.io/github/v/release/engelsofta/engelsoft-activity?label=Version&amp;color=e7c65a" alt="Latest release"></a>
+  <a href="https://www.home-assistant.io/"><img src="https://img.shields.io/badge/Home%20Assistant-2026.11.0%2B-78b6dd" alt="Home Assistant 2026.11.0 or newer"></a>
+  <a href="https://my.home-assistant.io/redirect/marketplace_repository/?owner=engelsofta&amp;repository=engelsoft-activity&amp;category=integration"><img src="https://img.shields.io/badge/Home%20Assistant-Marketplace-78b6dd" alt="Open in Home Assistant Marketplace"></a>
+  <a href="https://github.com/engelsofta/engelsoft-activity/releases"><img src="https://img.shields.io/github/downloads/engelsofta/engelsoft-activity/total?label=Downloads&amp;color=8ba83e" alt="Release downloads"></a>
+  <a href="https://github.com/engelsofta/engelsoft-activity/actions/workflows/checks.yml"><img src="https://github.com/engelsofta/engelsoft-activity/actions/workflows/checks.yml/badge.svg" alt="Validation checks"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-c7a56e" alt="MIT License"></a>
+</p>
 
 An alternative to Home Assistant's built-in **Activity** view. Engelsoft Activity turns your existing logbook into a searchable live timeline and adds its own **Activity** sidebar panel. The built-in view remains available.
 
