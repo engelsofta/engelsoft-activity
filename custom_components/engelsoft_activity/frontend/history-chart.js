@@ -1,6 +1,6 @@
-import { escapeHTML as esc } from './model.js?v=1.3.0';
-import { updateDOM } from './dom-update.js?v=1.3.0';
-import { historyPoints, available, isNumeric, valueAt, extent, steppedPath } from './history-model.js?v=1.3.0';
+import { escapeHTML as esc } from './model.js?v=1.3.1';
+import { updateDOM } from './dom-update.js?v=1.3.1';
+import { historyPoints, available, isNumeric, valueAt, extent, steppedPath } from './history-model.js?v=1.3.1';
 
 const HOUR = 3600000;
 const PERIODS = [1, 6, 24, 72, 168];
@@ -10,7 +10,7 @@ const PALETTE = ['#906227', '#24766d', '#5258a7', '#ad4754', '#526f2a', '#276591
 const DARK_PALETTE = ['#edc17f', '#7fe2cf', '#b4baff', '#ff9ba6', '#b7d683', '#89c9ff', '#e8a7df', '#f7b58c'];
 const UNIT_TITLES = new Map([['lx', 'Beleuchtungsstärke'], ['°C', 'Temperatur'], ['°F', 'Temperatur'], ['W', 'Leistung'], ['kW', 'Leistung'], ['%', 'Prozentwerte']]);
 const WIDTH = 1000;
-const css = new URL('./history-chart.css?v=1.3.0', import.meta.url).href;
+const css = new URL('./history-chart.css?v=1.3.1', import.meta.url).href;
 const icon = name => `<ha-icon icon="mdi:${name}" aria-hidden="true"></ha-icon>`;
 const number = new Intl.NumberFormat('de-DE', { maximumSignificantDigits: 5 });
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -113,6 +113,8 @@ class ActivityHistoryChart extends HTMLElement {
 
   restore(key) {
     this.key = key;
+    this.data = {};
+    this.start = this.end = this.cursor = undefined;
     this.ids = [];
     this.markers = [];
     this.hiddenSeries.clear();
@@ -212,7 +214,7 @@ class ActivityHistoryChart extends HTMLElement {
     clearTimeout(this.loadTimer);
     this.loadTimer = setTimeout(() => {
       this.save();
-      void this.load({ preservePlot: true });
+      void this.load();
     }, 150);
   }
 
@@ -250,10 +252,10 @@ class ActivityHistoryChart extends HTMLElement {
     }
     this.anchor = pan.nextEnd;
     this.cursor = null;
-    void this.load({ preservePlot: true, panOffset: pan.offset });
+    void this.load({ panOffset: pan.offset });
   }
 
-  async load({ preservePlot = false, panOffset = 0 } = {}) {
+  async load({ panOffset = 0 } = {}) {
     this.needsLoad = false;
     clearTimeout(this.loadTimer);
     this.loadTimer = null;
@@ -262,11 +264,11 @@ class ActivityHistoryChart extends HTMLElement {
     const ids = [...this.ids];
     const end = Math.min(this.anchor ?? Infinity, this.now());
     const start = end - this.hours * HOUR;
-    if (!preservePlot) {
+    if (this.end === undefined) {
       this.end = end;
       this.start = start;
-      this.data = {};
     }
+    if (!ids.length) this.data = {};
     this.error = '';
     this.loading = !!ids.length;
     this.render();
@@ -342,12 +344,12 @@ class ActivityHistoryChart extends HTMLElement {
     if (chart === 'export') return this.export();
     if (chart === 'period') this.hours = Number(value);
     if (chart === 'back' || chart === 'forward') {
-      const next = this.end + (chart === 'back' ? -1 : 1) * this.hours * HOUR;
+      const next = (this.anchor ?? this.now()) + (chart === 'back' ? -1 : 1) * this.hours * HOUR;
       this.anchor = next >= this.now() ? null : next;
     }
     if (chart === 'now') this.anchor = null;
     if (chart === 'in' || chart === 'out') {
-      const center = this.cursor ?? (this.start + this.end) / 2;
+      const center = this.cursor ?? (this.anchor ?? this.now()) - this.hours * HOUR / 2;
       this.hours = clamp(this.hours * (chart === 'in' ? .5 : 2), .25, 168);
       this.anchor = Math.min(this.now(), center + this.hours * HOUR / 2);
     } else if (chart !== 'refresh') this.cursor = null;
@@ -417,7 +419,12 @@ class ActivityHistoryChart extends HTMLElement {
     cursor.setAttribute('aria-valuetext', this.date(this.cursor));
     root.querySelector('.cursor-time').textContent = this.date(this.cursor);
     for (const series of this.renderedSeries) {
-      this.readouts.get(series.id).textContent = this.readout(series, this.cursor);
+      const reading = this.readouts.get(series.id);
+      const value = this.readout(series, this.cursor);
+      if (reading.textContent !== value) {
+        reading.textContent = value;
+        reading.title = value;
+      }
     }
   }
 
@@ -440,13 +447,14 @@ class ActivityHistoryChart extends HTMLElement {
   card(series, time) {
     const { id, name, color, points, numeric, unit } = series;
     const hidden = this.hiddenSeries.has(id);
+    const reading = hidden ? 'Ausgeblendet' : this.readout(series, time);
     const { min, max } = numeric ? extent(points) : {};
     const summary = numeric ? (min === max ? 'Konstant' : `${number.format(min)}–${number.format(max)}${unit ? ' ' + unit : ''}`)
       : points.length ? 'Zustandsverlauf' : this.loading ? 'Verlauf wird geladen …' : 'Keine Daten im Zeitraum';
     return `<article class="series" data-key="series-${esc(id)}" ${tint(color)}>
       <div class="series-header"><button class="series-toggle" data-chart="toggle" data-entity="${esc(id)}" aria-pressed="${!hidden}" aria-label="${esc(name)} ${hidden ? 'einblenden' : 'ausblenden'}" title="${esc(name + ' · ' + id)}"><i></i><span>${esc(name)}</span></button>
       <button class="remove" data-chart="remove" data-entity="${esc(id)}" aria-label="${esc(name)} aus dem Chart entfernen" title="${esc(name)} aus dem Chart entfernen">${icon('close')}</button></div>
-      <div class="series-reading"><strong data-reading="${esc(id)}">${hidden ? 'Ausgeblendet' : esc(this.readout(series, time))}</strong><small title="${numeric && min !== max ? 'Minimum und Maximum im Zeitraum' : ''}">${esc(summary)}</small></div></article>`;
+      <div class="series-reading"><strong data-reading="${esc(id)}" title="${esc(reading)}">${esc(reading)}</strong><small title="${esc(summary)}">${esc(summary)}</small></div></article>`;
   }
 
   plot(content, height, label) {
@@ -500,6 +508,7 @@ class ActivityHistoryChart extends HTMLElement {
     }
     const markers = this.rangeMarkers();
     return `<div class="graphs" style="--cursor:${this.position(time) * 100}%;--pan-offset:${this.pan?.offset ?? this.panOffset ?? 0}px">
+      <div class="chart-load" role="status" aria-label="Verlauf wird geladen" ${this.loading ? '' : 'hidden'}></div>
       ${this.markers.length ? `<div class="plot-row marker-row" ${markers.length ? '' : 'aria-hidden="true"'}><span>Ereignis</span><div class="marker-track">${markers.map(marker => `<button style="--at:${this.position(marker.time) * 100}%" data-chart="marker" data-value="${esc(marker.key)}" aria-label="${esc(marker.label + ' · ' + this.date(marker.time))}" title="${esc(marker.label)}">${icon('map-marker')}</button>`).join('')}</div></div>` : ''}
       <div class="graph-grid">${[...groups].map(([unit, items]) => this.numericPlot(items, unit, x)).join('')}
       ${states.map(item => this.statePlot(item, x)).join('')}</div>
@@ -523,7 +532,7 @@ class ActivityHistoryChart extends HTMLElement {
       `<button class="tool" data-chart="${action}" aria-label="${label}" title="${label}" ${disabled ? 'disabled' : ''}>${icon(glyph)}</button>`;
     const empty = this.loading ? 'Verlauf wird geladen …' : this.error || (series.length === 0 ? 'Dein Verlauf beginnt hier.'
       : visible.length === 0 ? 'Alle Entitäten sind ausgeblendet.' : 'Keine darstellbaren Zustände in diesem Zeitraum.');
-    const showGraphs = !this.error && (drawable.length > 0 || (!this.loading && this.rangeMarkers().length > 0));
+    const showGraphs = drawable.length > 0 || this.rangeMarkers().length > 0;
     updateDOM(this.shadowRoot, `<link rel="stylesheet" href="${css}"><section class="history">
       <div class="toolbar"><div class="periods" role="group" aria-label="Chart-Zeitraum">
         ${PERIODS.map(hours => `<button data-chart="period" data-value="${hours}" aria-pressed="${hours === this.hours}">${duration(hours)}</button>`).join('')}
@@ -531,18 +540,19 @@ class ActivityHistoryChart extends HTMLElement {
         <div class="tools">
           <div class="tool-group" role="group" aria-label="Zeitnavigation">
           ${button('back', 'Vorheriger Chart-Zeitraum', 'chevron-left', !series.length)}
-          ${button('forward', 'Nächster Chart-Zeitraum', 'chevron-right', !series.length || this.anchor === null || this.end >= this.now() - 1000)}
+          ${button('forward', 'Nächster Chart-Zeitraum', 'chevron-right', !series.length || this.anchor === null || this.anchor >= this.now() - 1000)}
           <button data-chart="now" ${series.length ? '' : 'disabled'}>Jetzt</button>
           </div><div class="tool-group" role="group" aria-label="Zoom">
           ${button('in', 'Hineinzoomen', 'magnify-plus-outline', !series.length || this.hours <= .25)}
           ${button('out', 'Herauszoomen', 'magnify-minus-outline', !series.length || this.hours >= 168)}
           </div><div class="tool-group" role="group" aria-label="Daten">
           ${button('refresh', 'Chart aktualisieren', 'refresh', !series.length)}
-          ${button('export', 'Chart als CSV exportieren', 'download-outline', !showGraphs || this.loading)}
+          ${button('export', 'Chart als CSV exportieren', 'download-outline', !showGraphs || this.loading || !!this.error)}
           </div>
         </div>${this.picker()}</div>
       ${this.feedback ? `<p class="feedback" role="status">${esc(this.feedback)}</p>` : ''}
       ${series.length ? `<div class="series-grid">${series.map(item => this.card(item, time)).join('')}</div>` : ''}
+      ${showGraphs && this.error ? `<p class="feedback" role="alert">${esc(this.error)}</p>` : ''}
       ${showGraphs ? this.graphs(drawable, time) : `<div class="chart-empty" role="status">${icon(this.loading ? 'timer-sand' : 'chart-line')}<b>${esc(empty)}</b>${!series.length ? '<p>Füge oben eine Entität hinzu oder übernimm ein Ereignis direkt aus der Zeitleiste.</p>' : ''}</div>`}
       ${this.markerList()}
     </section>`);

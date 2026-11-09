@@ -29,12 +29,16 @@ async function checkChart(page, panel) {
       callWS: async request => {
         if (request.type !== 'history/history_during_period') return original(request);
         demo.chartRequests = (demo.chartRequests || 0) + 1;
+        if (demo.holdChart) {
+          demo.holdChart = false;
+          await new Promise(resolve => { demo.releaseChart = resolve; });
+        }
         const start = Date.parse(request.start_time) / 1000;
         const span = Date.parse(request.end_time) / 1000 - start;
         return Object.fromEntries(request.entity_ids.map(id => [id, [
           { s: id.startsWith('sensor.') ? '20' : 'off', lu: start },
           { s: 'unavailable', lu: start + span / 4 },
-          { s: id.startsWith('sensor.') ? '23.5' : 'on', lu: start + span / 2 },
+          { s: id.startsWith('sensor.') ? '23.5' : 'Automatischer Betrieb mit aktiver Leistungsbegrenzung', lu: start + span / 2 },
         ]]));
       },
     };
@@ -91,8 +95,33 @@ async function checkChart(page, panel) {
       assert(plots[index].top - plots[index - 1].bottom >= 24);
     }
   }
+  const stateReading = chart.locator('[data-reading="switch.demo"]');
+  const cardLayout = () => chart.evaluate(el => ({
+    height: el.shadowRoot.querySelector('.series-grid').getBoundingClientRect().height,
+    plotTop: el.shadowRoot.querySelector('[data-plot]').getBoundingClientRect().top,
+  }));
+  const hoverPlot = chart.locator('[data-plot]').first();
+  await hoverPlot.scrollIntoViewIfNeeded();
+  const hoverBox = await hoverPlot.boundingBox();
+  await page.mouse.move(hoverBox.x + hoverBox.width * .15, hoverBox.y + hoverBox.height / 2);
+  assert.equal(await stateReading.textContent(), 'Aus');
+  const shortLayout = await cardLayout();
+  await page.mouse.move(hoverBox.x + hoverBox.width * .85, hoverBox.y + hoverBox.height / 2);
+  assert.equal(await stateReading.getAttribute('title'), 'Automatischer Betrieb mit aktiver Leistungsbegrenzung');
+  assert.deepEqual(await cardLayout(), shortLayout);
+  const loading = chart.locator('.chart-load');
+  await chart.evaluate(el => {
+    demo.holdChart = true;
+    demo.plotBeforeLoading = el.shadowRoot.querySelector('[data-plot]');
+    demo.endBeforeLoading = el.end;
+  });
   await chart.locator('[data-chart="in"]').click();
-  await chart.locator('.curve').first().waitFor();
+  await loading.waitFor();
+  assert.equal(await loading.evaluate(el => getComputedStyle(el, '::after').animationName), 'chart-load-sweep');
+  assert(await chart.evaluate(el => el.shadowRoot.querySelector('[data-plot]') === demo.plotBeforeLoading &&
+    el.end === demo.endBeforeLoading));
+  await page.evaluate(() => demo.releaseChart());
+  await loading.waitFor({ state: 'hidden' });
   assert.equal(await chart.evaluate(el => el.hours), 12);
   const plot = chart.locator('[data-plot]').first();
   const gesture = await plot.evaluate(el => {
@@ -158,7 +187,11 @@ async function checkChart(page, panel) {
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 5 });
   assert(await chart.locator('.graphs').evaluate(el => parseFloat(el.style.getPropertyValue('--pan-offset')) > 0));
   assert.equal(await page.evaluate(() => demo.chartRequests), beforePan.requests, 'fetch after releasing the mouse');
+  await page.evaluate(() => { demo.holdChart = true; });
   await page.mouse.up();
+  await loading.waitFor();
+  assert.deepEqual(await plotLayout(), layoutBeforePan);
+  await page.evaluate(() => demo.releaseChart());
   await page.waitForFunction(end => {
     const chart = document.querySelector('engelsoft-activity-panel').shadowRoot.querySelector('engelsoft-activity-history');
     return !chart.loading && chart.end < end;
