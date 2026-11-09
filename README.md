@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/engelsofta/engelsoft-activity/releases/latest"><img src="https://img.shields.io/github/v/release/engelsofta/engelsoft-activity?label=Version&amp;color=e7c65a&amp;cacheSeconds=300" alt="Latest release"></a>
+  <a href="https://github.com/engelsofta/engelsoft-activity/releases/latest"><img src="https://img.shields.io/badge/Version-v1.2.0-e7c65a" alt="Latest release"></a>
   <a href="https://www.home-assistant.io/"><img src="https://img.shields.io/badge/Home%20Assistant-2026.11.0%2B-78b6dd" alt="Home Assistant 2026.11.0 or newer"></a>
   <a href="https://my.home-assistant.io/redirect/marketplace_repository/?owner=engelsofta&amp;repository=engelsoft-activity&amp;category=integration"><img src="https://img.shields.io/badge/Home%20Assistant-Marketplace-78b6dd" alt="Open in Home Assistant Marketplace"></a>
   <a href="https://github.com/engelsofta/engelsoft-activity/releases"><img src="https://img.shields.io/github/downloads/engelsofta/engelsoft-activity/total?label=Downloads&amp;color=8ba83e" alt="Release downloads"></a>

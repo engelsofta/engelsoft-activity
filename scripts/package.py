@@ -35,6 +35,9 @@ def main():
     version = manifest["version"]
     if args.tag and args.tag != f"v{version}":
         raise ValueError("Release tag and manifest version differ")
+    badge = f"https://img.shields.io/badge/Version-v{version}-e7c65a"
+    if f'src="{badge}"' not in (ROOT / "README.md").read_text(encoding="utf-8"):
+        raise ValueError("Update the README version badge to match the manifest")
     if f'VERSION = "{version}"' not in (COMPONENT / "const.py").read_text():
         raise ValueError("Constant version mismatch")
     panel = (COMPONENT / "frontend/panel.js").read_text(encoding="utf-8")
