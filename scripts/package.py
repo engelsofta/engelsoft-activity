@@ -11,6 +11,7 @@ COMPONENT = ROOT / "custom_components/engelsoft_activity"
 RUNTIME_FILES = (
     "__init__.py", "config_flow.py", "const.py", "manifest.json", "strings.json",
     "frontend/background.css", "frontend/dom-update.js", "frontend/model.js",
+    "frontend/history-chart.css", "frontend/history-chart.js", "frontend/history-model.js",
     "frontend/panel.js", "frontend/styles.css", "translations/de.json", "translations/en.json",
     "frontend/activity-light-background.png", "brand/icon.png", "brand/icon@2x.png",
 )

@@ -5,12 +5,12 @@
 <h1 align="center">Engelsoft Activity</h1>
 
 <p align="center">
-  <strong>Your home has gossip. We brought a timeline.</strong><br>
+  <strong>📈 Your lights have mood swings. We graphed them.</strong><br>
   A calmer view of your smart home's everyday adventures.
 </p>
 
 <p align="center">
-  <a href="https://github.com/engelsofta/engelsoft-activity/releases/latest"><img src="https://img.shields.io/badge/Version-v1.2.0-e7c65a" alt="Latest release"></a>
+  <a href="https://github.com/engelsofta/engelsoft-activity/releases/latest"><img src="https://img.shields.io/badge/Version-v1.3.0-e7c65a" alt="Latest release"></a>
   <a href="https://www.home-assistant.io/"><img src="https://img.shields.io/badge/Home%20Assistant-2026.11.0%2B-78b6dd" alt="Home Assistant 2026.11.0 or newer"></a>
   <a href="https://my.home-assistant.io/redirect/marketplace_repository/?owner=engelsofta&amp;repository=engelsoft-activity&amp;category=integration"><img src="https://img.shields.io/badge/Home%20Assistant-Marketplace-78b6dd" alt="Open in Home Assistant Marketplace"></a>
   <a href="https://github.com/engelsofta/engelsoft-activity/releases"><img src="https://img.shields.io/github/downloads/engelsofta/engelsoft-activity/total?label=Downloads&amp;color=8ba83e" alt="Release downloads"></a>
@@ -44,6 +44,7 @@ Both previews use fictional rooms, devices and events. The panel follows your Ho
 - **Search and filters:** find events by room, individual entity, entity type or integration.
 - **Favorites and hidden entities:** keep useful events close and reduce noise without changing Home Assistant recording.
 - **Activity chart and insights:** focus on a time segment or see which entities generated the most events.
+- **Entity comparison:** plot up to eight entities with separate scales for different units and state bands for switches and text states. Zoom, inspect values at a shared time, and export the visible range as CSV.
 - **Event details and CSV export:** inspect original messages, timestamps and shared event contexts, or download your filtered timeline.
 - **Responsive layout:** neutral event rows, fault indicators and controls adapted for desktop and mobile.
 
@@ -62,16 +63,19 @@ After updating, restart Home Assistant and reload your browser.
 ## Quick guide
 
 - Use **Räume** for rooms and **Einzelne Entitäten** for individual entities. **Weitere Filter** contains entity types and integrations. Multiple choices within a filter use OR; different filters combine with AND.
-- Select **Favoriten** to show starred entities. Hover over an event or focus it with the keyboard to access the star and hide controls; these stay visible on touch devices.
+- Select **Favoriten** to show starred entities. Each activity row for an entity shows the chart, star and hide controls.
 - **Ausgeblendet** opens a searchable dropdown in the filter row, where you can restore entities individually or all at once. Hiding only affects this panel.
 - Remove an active filter with its ×, or select **Alle Filter löschen**. Select **Jetzt** to return from a historical period to live activity.
 - Select an event for details. Known Shelly button messages are shortened in the timeline; details and CSV exports retain the original message.
 
+- Open **Charts** from the side rail and select **Entität hinzufügen** in the toolbar to compare entities. Drag a plot horizontally to move through time, or hold **Ctrl** while scrolling over it to zoom around the pointer. The badge shows the number of selected entities. You can also use the chart icon in an activity row to add the entity and mark that event. Select a saved marker to jump back to its time.
+- Select **Automationen** in the overview to filter the timeline to automations, scripts and scenes.
+
 ## Privacy and limits
 
-No telemetry or external runtime services. Favorites and hidden-entity preferences stay in your browser, separated by Home Assistant user. CSV exports can contain private activity data.
+No telemetry or external runtime services. Favorites, hidden-entity preferences, chart selections and up to 24 activity markers stay in your browser, separated by Home Assistant user. CSV exports can contain private activity data.
 
-History follows Home Assistant logbook retention, exclusions and permissions. Room information uses the current registry. The panel interface currently uses **German labels**; setup supports English and German.
+The timeline uses the Home Assistant logbook. The comparison chart uses recorded entity states and the current entity units. Both follow Home Assistant retention, exclusions and permissions. Room information uses the current registry. The panel interface currently uses **German labels**; setup supports English and German.
 
 This is a community integration, not an official Home Assistant product.
 
