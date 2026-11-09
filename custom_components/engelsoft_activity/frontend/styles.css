@@ -272,3 +272,44 @@ main{min-height:100vh;min-height:100dvh}
  .filter-card .extra-filters[open]{grid-column:1 / -1}
  .filter-card .extra-filter-panel{position:static;width:100%;max-width:none;margin-top:8px;box-shadow:none}
 }
+
+/* Clear status symbols and a separate source column, without status dots. */
+.event-main{grid-template-columns:minmax(0,1fr) minmax(150px,24%) minmax(100px,16%);column-gap:24px}
+.event-main>.event-state::before{content:none;display:none}
+.event-main>.event-state>ha-icon{display:inline-flex;align-items:center;justify-content:center;align-self:center;flex:0 0 17px;width:17px;height:17px;line-height:0;vertical-align:middle;--mdc-icon-size:17px;--ha-icon-size:17px}
+.event-main>.event-state{color:var(--muted)}
+.status-unknown .event-main>.event-state{color:#b9bfca}
+.status-offline .event-main>.event-state,.status-alert .event-main>.event-state{color:#d5aa82}
+.event-row.status-unknown .event-state,.event-row.status-offline .event-state,.event-row.status-alert .event-state{justify-self:start;padding:0;border:0;border-radius:0;background:none}
+.event-main>.event-source{grid-column:3;grid-row:1 / span 2;justify-self:start;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0;border:0;border-radius:0;background:none;color:var(--muted);font-size:11px;font-weight:400;letter-spacing:.025em}
+.source-caption{display:none}
+.light .event-row.status-unknown .event-state{color:#586477}
+.light .event-row.status-offline .event-state,.light .event-row.status-alert .event-state{color:#925d32}
+@media(max-width:1100px) and (min-width:601px){.event-main{grid-template-columns:minmax(0,1fr) minmax(130px,28%) minmax(80px,17%);column-gap:12px}}
+@media(max-width:600px){
+ .event-main{grid-template-columns:minmax(0,1fr);gap:6px}
+ .event-main>.event-state{grid-column:1;grid-row:2;white-space:normal}
+ .event-main>.event-state>span{white-space:normal;overflow-wrap:anywhere}
+ .event-main>small{grid-column:1;grid-row:3}
+ .event-main>.event-source{grid-column:1;grid-row:4;font-size:10px;padding:0}
+ .source-caption{display:inline;margin-right:6px;opacity:.75;font-weight:400;letter-spacing:0}
+}
+
+
+/* Muted entities share the filter dropdown row, separated from selection filters. */
+.filter-card .muted-picker{margin-left:auto;min-width:175px}
+.muted-picker .multi-popover{left:auto;right:0;width:400px}
+.muted-picker .muted-entry{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:8px 6px;font-size:12px}
+.muted-entry>span{min-width:0;overflow-wrap:anywhere}
+.text-action{display:inline-flex;align-items:center;min-height:32px;padding:3px 0;border:0;background:none;color:var(--gold);font-size:11px}
+.text-action:hover{text-decoration:underline;text-underline-offset:3px}
+.muted-entry .unmute{flex:none;margin:0}
+@media(max-width:600px){.filter-card .muted-picker{margin-left:0}.muted-picker .multi-popover{width:100%}}
+
+/* Important events retain the quiet layout and use a slim edge plus explicit text. */
+.event-row.important-event,.light .event-row.important-event{box-shadow:inset 2px 0 0 #ba916b;background:linear-gradient(90deg,rgba(186,145,107,.07),transparent 60%)}
+.event-row.important-event.status-unknown,.light .event-row.important-event.status-unknown{box-shadow:inset 2px 0 0 #939dab;background:linear-gradient(90deg,rgba(147,157,171,.06),transparent 60%)}
+.importance-label{color:#d5aa82;font-weight:500}
+.status-unknown .importance-label{color:#b9bfca}
+.light .importance-label{color:#925d32}.light .status-unknown .importance-label{color:#586477}
+.event-main>.event-state>span{white-space:normal;overflow-wrap:anywhere}

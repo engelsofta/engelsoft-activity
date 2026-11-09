@@ -17,8 +17,8 @@ export function conciseEventLabel(event, fallback) {
   if(match)return ({single_push:'Taste kurz gedrückt',double_push:'Taste doppelt gedrückt',triple_push:'Taste dreifach gedrückt',long_push:'Taste lange gedrückt',btn_up:'Taste losgelassen',btn_down:'Taste gedrückt'})[match[1].toLowerCase()];
   return fallback;
 }
-export function category(e) {
-  if (['unavailable','unknown'].includes(e.state)) return 'attention';
+export function category(e,entity) {
+  if (eventImportance(e,entity)) return 'attention';
   if (['automation','script','scene'].includes(domainOf(e))) return 'automation';
   return 'state';
 }
@@ -28,7 +28,7 @@ export function filterEvents(events, filters, meta) {
   return events.filter(e=>{
     const m=meta(e),id=e.entity_id;
     return (!q || `${m.name} ${id||''} ${e.state||''} ${e.message||''} ${m.area} ${m.integration} ${e.context_name||''}`.toLocaleLowerCase('de').includes(q))
-      && (!filters.kind || filters.kind==='all' || category(e)===filters.kind)
+      && (!filters.kind || filters.kind==='all' || category(e,m.entity)===filters.kind)
       && selectedMatch(filters.domain,domainOf(e))
       && selectedMatch(filters.area,m.areaId)
       && selectedMatch(filters.integration,m.integration)
@@ -74,4 +74,24 @@ export function eventAppearance(event, entity) {
   if(state==='unlocked')return appearance('unknown','mdi:lock-open-outline');
   if(['triggered','jammed','error','fault','alarm'].includes(state))return appearance('alert','mdi:alert-circle-outline');
   return appearance('neutral','mdi:swap-horizontal');
+}
+
+// Use only recorded states strictly before the event, never the current HA state.
+export function previousStates(events){
+ const result=new Map(),last=new Map(),ordered=events.filter(e=>e.entity_id&&typeof e.state==='string'&&!e.message&&!['automation','script','scene','event','button','input_button'].includes(domainOf(e))&&Number.isFinite(timestamp(e))).sort((a,b)=>timestamp(a)-timestamp(b));
+ for(let i=0;i<ordered.length;){let j=i;while(j<ordered.length&&timestamp(ordered[j])===timestamp(ordered[i]))j++;
+  for(let k=i;k<j;k++){const e=ordered[k],prior=last.get(e.entity_id);if(prior!==undefined&&prior!==null&&prior!==e.state)result.set(e,prior);}
+  const group=new Map();for(let k=i;k<j;k++){const e=ordered[k];if(!group.has(e.entity_id))group.set(e.entity_id,e.state);else if(group.get(e.entity_id)!==e.state)group.set(e.entity_id,null);}for(const [id,state] of group)last.set(id,state);i=j;
+ }return result;
+}
+export function eventImportance(event,entity){
+ const state=String(event.state??'').toLowerCase(),domain=domainOf(event),dc=entity?.attributes?.device_class;
+ if(['unavailable','offline','disconnected'].includes(state))return 'Nicht verfügbar';
+ if(state==='unknown')return 'Zustand unbekannt';
+ if(['triggered','jammed','error','fault','alarm'].includes(state))return 'Alarm / Störung';
+ if(domain==='binary_sensor'&&state==='off'&&dc==='connectivity')return 'Verbindung unterbrochen';
+ if(domain==='binary_sensor'&&state==='on'&&['smoke','gas','moisture','problem','safety','tamper'].includes(dc))return 'Alarm / Störung';
+ if(domain==='binary_sensor'&&state==='on'&&dc==='battery')return 'Batterie niedrig';
+ if(domain==='sensor'&&dc==='battery'&&entity?.attributes?.unit_of_measurement==='%'&&state.trim()!==''&&Number.isFinite(Number(state))&&Number(state)>=0&&Number(state)<=20)return 'Batterie niedrig (≤ 20 %)';
+ return '';
 }

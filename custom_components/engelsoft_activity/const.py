@@ -1,4 +1,4 @@
 """Engelsoft Activity constants."""
 DOMAIN = "engelsoft_activity"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 PANEL = "activity"

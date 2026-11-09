@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mergeEvents,filterEvents,histogram,eventAppearance,escapeHTML,conciseEventLabel} from '../custom_components/engelsoft_activity/frontend/model.js';
+import {previousStates,eventImportance,category,mergeEvents,filterEvents,histogram,eventAppearance,escapeHTML,conciseEventLabel} from '../custom_components/engelsoft_activity/frontend/model.js';
 const events=[{when:1,entity_id:'light.demo',state:'on',context_id:'demo-a'},{when:2,entity_id:'light.demo',state:'off',context_id:'demo-b'},{when:3,entity_id:'sensor.demo',state:'unavailable'}];
 const meta=e=>({name:e.entity_id,areaId:e.entity_id.startsWith('light.')?'room_a':'room_b',integration:e.entity_id.split('.')[0]});
 const filters={query:'',kind:'all',favorites:[],muted:[],hideMuted:true};
@@ -14,3 +14,18 @@ test('HTML content is escaped',()=>assert.equal(escapeHTML('<script>"demo"</scri
 
 
 test('known Shelly button messages use concise labels without changing the source',()=>{for(const [kind,label] of Object.entries({single_push:'Taste kurz gedrückt',double_push:'Taste doppelt gedrückt',triple_push:'Taste dreifach gedrückt',long_push:'Taste lange gedrückt',btn_up:'Taste losgelassen',btn_down:'Taste gedrückt'})){const message="'"+kind+"' click event for example-button Input 0 was fired";const event={message};assert.equal(conciseEventLabel(event,message),label);assert.equal(event.message,message);}assert.equal(conciseEventLabel({message:'Unknown event'},'Unknown event'),'Unknown event');});
+
+test('previous states use full history, ignore messages and ambiguous simultaneous changes',()=>{
+ const a={when:1,entity_id:'light.a',state:'off'},b={when:2,entity_id:'light.a',message:'pressed'},c={when:3,entity_id:'light.a',state:'on'},d={when:4,entity_id:'light.a',state:'on'};
+ let map=previousStates([d,c,b,a]);assert.equal(map.get(c),'off');assert(!map.has(a));assert(!map.has(b));assert(!map.has(d));
+ const x={when:1,entity_id:'light.a',state:'on'};map=previousStates([a,x,c]);assert(!map.has(c));assert(!map.has(x));
+});
+test('important events include alarms, connection loss and battery percentages, not normal off',()=>{
+ const entity=(device_class,unit_of_measurement)=>({attributes:{device_class,unit_of_measurement}});
+ assert.equal(eventImportance({entity_id:'switch.a',state:'off'}),'');
+ assert.equal(category({entity_id:'binary_sensor.a',state:'on'},entity('smoke')),'attention');
+ assert.equal(eventImportance({entity_id:'binary_sensor.a',state:'off'},entity('connectivity')),'Verbindung unterbrochen');
+ for(const state of ['0','20'])assert(eventImportance({entity_id:'sensor.a',state},entity('battery','%')));
+ for(const state of ['21','-1',''])assert.equal(eventImportance({entity_id:'sensor.a',state},entity('battery','%')),'');
+ assert.equal(eventImportance({entity_id:'sensor.a',state:'2.5'},entity('battery','V')),'');
+});

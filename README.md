@@ -56,7 +56,7 @@ After updating, restart Home Assistant and reload your browser.
 
 - Use **Räume** for rooms and **Einzelne Entitäten** for individual entities. **Weitere Filter** contains entity types and integrations. Multiple choices within a filter use OR; different filters combine with AND.
 - Select **Favoriten** to show starred entities. Hover over an event or focus it with the keyboard to access the star and hide controls; these stay visible on touch devices.
-- **Ausgeblendet** opens the hidden-entity list under **Einblicke**, where you can restore entities. Hiding only affects this panel.
+- **Ausgeblendet** opens a searchable dropdown in the filter row, where you can restore entities individually or all at once. Hiding only affects this panel.
 - Remove an active filter with its ×, or select **Alle Filter löschen**. Select **Jetzt** to return from a historical period to live activity.
 - Select an event for details. Known Shelly button messages are shortened in the timeline; details and CSV exports retain the original message.
 
