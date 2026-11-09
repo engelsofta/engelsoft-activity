@@ -33,6 +33,7 @@ export function filterEvents(events, filters, meta) {
       && selectedMatch(filters.area,m.areaId)
       && selectedMatch(filters.integration,m.integration)
       && selectedMatch(filters.entity,id)
+      && selectedMatch(filters.cause,m.cause)
       && (!filters.favoritesOnly || filters.favorites.includes(id))
       && (!filters.hideMuted || !filters.muted.includes(id))
       && (!filters.bucket || (timestamp(e)>=filters.bucket[0]&&timestamp(e)<filters.bucket[1]));
@@ -94,4 +95,26 @@ export function eventImportance(event,entity){
  if(domain==='binary_sensor'&&state==='on'&&dc==='battery')return 'Batterie niedrig';
  if(domain==='sensor'&&dc==='battery'&&entity?.attributes?.unit_of_measurement==='%'&&state.trim()!==''&&Number.isFinite(Number(state))&&Number(state)>=0&&Number(state)<=20)return 'Batterie niedrig (≤ 20 %)';
  return '';
+}
+
+// The cause belongs to the event context, not to the affected entity's integration.
+export function eventCause(event, people) {
+  const type = event.context_event_type;
+  if (type === 'automation_triggered') return 'automation';
+  if (type === 'script_started') return 'script';
+  if (event.context_user_id) {
+    return people.has(event.context_user_id) ? 'person:' + event.context_user_id : 'integration';
+  }
+  if (type === 'call_service' || event.context_state !== undefined) return 'other';
+  return event.context_name ? 'integration' : 'other';
+}
+
+export function eventTrace(event) {
+  const {domain, item_id, run_id} = event;
+  if (!['automation', 'script'].includes(domain) || !item_id || !run_id) return undefined;
+  return {domain, item_id, run_id};
+}
+
+export function traceUrl({domain, item_id, run_id}) {
+  return '/config/' + domain + '/trace/' + encodeURIComponent(item_id) + '?run_id=' + encodeURIComponent(run_id);
 }

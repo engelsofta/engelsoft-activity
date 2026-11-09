@@ -30,6 +30,13 @@ An alternative to Home Assistant's built-in **Activity** view. Engelsoft Activit
 
 Both previews use fictional rooms, devices and events. The panel follows your Home Assistant light/dark theme.
 
+## Home Assistant 2026.11 Activity features
+
+**Supported since Engelsoft Activity 1.2.0.**
+
+- **Triggered by** (*Ausgelöst durch*) under **Weitere Filter** lets you narrow the timeline by linked person, automation, script, integration, or other cause.
+- **Open trace** (*Trace öffnen*) opens the exact automation or script run from the event details. Available to administrators when the event identifies the run and Home Assistant still has its trace.
+
 ## What you get
 
 - **Live timeline:** new logbook events arrive through your existing Home Assistant connection.

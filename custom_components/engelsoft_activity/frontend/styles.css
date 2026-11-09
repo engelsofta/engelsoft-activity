@@ -313,3 +313,5 @@ main{min-height:100vh;min-height:100dvh}
 .status-unknown .importance-label{color:#b9bfca}
 .light .importance-label{color:#925d32}.light .status-unknown .importance-label{color:#586477}
 .event-main>.event-state>span{white-space:normal;overflow-wrap:anywhere}
+
+.trace-link{display:inline-block;margin-top:5px;color:var(--gold);font-size:12px;text-underline-offset:3px}

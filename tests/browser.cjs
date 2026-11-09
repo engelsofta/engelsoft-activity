@@ -13,4 +13,39 @@ assert.deepEqual(await panel.locator('.event-source').allTextContents(),['Datenq
 assert.equal(await panel.locator('.status-unknown .event-state ha-icon').getAttribute('icon'),'mdi:help-circle-outline');
 assert.equal(await panel.locator('.status-offline .event-state ha-icon').getAttribute('icon'),'mdi:lan-disconnect');
 for(const width of [1440,900,390,320]){await page.setViewportSize({width,height:1000});assert(await panel.locator('main').evaluate(el=>el.scrollWidth<=el.clientWidth+1));assert(await panel.locator('.event-state').first().evaluate(el=>getComputedStyle(el,'::before').display==='none'&&getComputedStyle(el.querySelector('ha-icon')).display!=='none'));assert(await panel.locator('.event-source').first().evaluate(el=>{const source=el.getBoundingClientRect(),state=el.parentElement.querySelector('.event-state').getBoundingClientRect();return innerWidth>600?source.left>=state.right:source.top>=state.bottom;}));}
-await panel.evaluate(el=>{el.filters.muted=['light.demo','switch.demo'];el.render();el.shadowRoot.querySelector('.muted-picker').open=false;});assert.equal(await panel.locator('.muted-picker summary b').textContent(),'2');await panel.locator('.muted-picker summary').click();await panel.locator('[data-action=unmute-all]').click();assert.equal(await panel.locator('.muted-picker summary b').textContent(),'0');assert.equal(await panel.evaluate(el=>el.filters.muted.length),0);await panel.evaluate(el=>{el.view='timeline';el.reset();el.events=[{when:3,entity_id:'light.demo',state:'unavailable'},{when:2,entity_id:'light.demo',state:'on'},{when:1,entity_id:'light.demo',state:'off'}];el.render();});assert.equal(await panel.locator('.important-event').count(),1);assert.equal(await panel.locator('.event-state>span').first().textContent(),'Ein → Nicht verfügbar');assert.equal(await panel.locator('.event-state>span').nth(1).textContent(),'Aus → Ein');await panel.locator('.event-main').first().click();assert.equal(await panel.locator('.detail-state').textContent(),'Ein → Nicht verfügbar');await panel.evaluate(el=>el.remove());await page.waitForTimeout(30);assert.equal(await page.evaluate(()=>demo.subscriptions),await page.evaluate(()=>demo.unsubscribed));assert.deepEqual(errors,[]);console.log('Synthetic browser checks passed: loading completion, live updates, responsive layout, multiselect, search, period, details, favorites, themes, cleanup.');}finally{await browser.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+await panel.evaluate(el=>{el.filters.muted=['light.demo','switch.demo'];el.render();el.shadowRoot.querySelector('.muted-picker').open=false;});assert.equal(await panel.locator('.muted-picker summary b').textContent(),'2');await panel.locator('.muted-picker summary').click();await panel.locator('[data-action=unmute-all]').click();assert.equal(await panel.locator('.muted-picker summary b').textContent(),'0');assert.equal(await panel.evaluate(el=>el.filters.muted.length),0);await panel.evaluate(el=>{el.view='timeline';el.reset();el.events=[{when:3,entity_id:'light.demo',state:'unavailable'},{when:2,entity_id:'light.demo',state:'on'},{when:1,entity_id:'light.demo',state:'off'}];el.render();});assert.equal(await panel.locator('.important-event').count(),1);assert.equal(await panel.locator('.event-state>span').first().textContent(),'Ein → Nicht verfügbar');assert.equal(await panel.locator('.event-state>span').nth(1).textContent(),'Aus → Ein');await panel.locator('.event-main').first().click();assert.equal(await panel.locator('.detail-state').textContent(),'Ein → Nicht verfügbar');await panel.locator('[data-action=close]').click();
+await page.setViewportSize({width:1440,height:1000});
+await panel.evaluate(el=>{
+ const person={attributes:{user_id:'person-user',friendly_name:'Demo Person'}};
+ el.hass={...el.hass,user:{...el.hass.user,is_admin:true},states:{...el.hass.states,'person.demo':person},callWS:async request=>{
+  demo.requests.push(request);
+  return request.type==='trace/list'?[{run_id:'saved-'+request.item_id}]:[];
+ }};
+ const context_id='shared';
+ el.events=[
+  {when:8,entity_id:'light.demo',state:'on',context_id,context_event_type:'automation_triggered'},
+  {when:7,entity_id:'script.b',domain:'script',item_id:'b',run_id:'saved-b',context_id},
+  {when:6,entity_id:'script.a',domain:'script',item_id:'a',run_id:'saved-a',context_id},
+  {when:5,entity_id:'automation.demo',domain:'automation',item_id:'demo',run_id:'saved-demo',context_id},
+  {when:4,entity_id:'script.a',domain:'script',item_id:'a',run_id:'expired-a',context_id},
+  {when:3,entity_id:'switch.demo',state:'off',context_user_id:'person-user'}
+ ];
+ el.render();
+});
+await panel.locator('.extra-filters > summary').click();
+await panel.locator('[data-key="picker-cause"] summary').click();
+await panel.locator('[data-multi="cause"][value="automation"]').check();
+assert.deepEqual(await panel.locator('.event-main strong').allTextContents(),['Demo Light']);
+await panel.locator('[data-multi="cause"][value="person:person-user"]').check();
+assert.deepEqual(await panel.locator('.event-main strong').allTextContents(),['Demo Light','Demo Switch']);
+await panel.locator('.extra-filters > summary').click();
+await panel.locator('.event-main').first().click();
+await panel.locator('.related .trace-link').nth(2).waitFor();
+assert.deepEqual(await panel.locator('.related .trace-link').evaluateAll(links=>links.map(link=>link.getAttribute('href'))),['/config/script/trace/b?run_id=saved-b','/config/script/trace/a?run_id=saved-a','/config/automation/trace/demo?run_id=saved-demo']);
+assert.equal(await page.evaluate(()=>demo.requests.filter(r=>r.type==='trace/list'&&r.item_id==='a').length),1);
+await panel.locator('[data-action=close]').click();
+await panel.evaluate(el=>{el.hass={...el.hass,user:{...el.hass.user,is_admin:false}};});
+await panel.locator('.event-main').first().click();
+assert.equal(await panel.locator('.trace-link').count(),0);
+assert.equal(await page.evaluate(()=>demo.requests.filter(r=>r.type==='trace/list').length),3);
+await panel.evaluate(el=>el.remove());await page.waitForTimeout(30);assert.equal(await page.evaluate(()=>demo.subscriptions),await page.evaluate(()=>demo.unsubscribed));assert.deepEqual(errors,[]);console.log('Synthetic browser checks passed: loading completion, live updates, responsive layout, multiselect, search, period, details, favorites, themes, cleanup.');}finally{await browser.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

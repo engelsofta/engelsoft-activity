@@ -16,4 +16,4 @@ jobs:
       - name: Publish runtime archives
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$GITHUB_REF_NAME" dist/*.zip --verify-tag --title "$GITHUB_REF_NAME — Even your light switches have character arcs." --notes-file RELEASE_NOTES.md
+        run: gh release create "$GITHUB_REF_NAME" dist/*.zip --verify-tag --title "$GITHUB_REF_NAME — The lights talked. We followed the trace." --notes-file RELEASE_NOTES.md
