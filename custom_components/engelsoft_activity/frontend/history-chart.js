@@ -1,6 +1,7 @@
-import { escapeHTML as esc } from './model.js?v=1.3.1';
-import { updateDOM } from './dom-update.js?v=1.3.1';
-import { historyPoints, available, isNumeric, valueAt, extent, steppedPath } from './history-model.js?v=1.3.1';
+import { activityLanguage, activityLocale, activityTranslator, activityNumber } from "./localization.js?v=1.4.0";
+import { escapeHTML as esc } from './model.js?v=1.4.0';
+import { updateDOM } from './dom-update.js?v=1.4.0';
+import { historyPoints, available, isNumeric, valueAt, extent, steppedPath } from './history-model.js?v=1.4.0';
 
 const HOUR = 3600000;
 const PERIODS = [1, 6, 24, 72, 168];
@@ -10,19 +11,26 @@ const PALETTE = ['#906227', '#24766d', '#5258a7', '#ad4754', '#526f2a', '#276591
 const DARK_PALETTE = ['#edc17f', '#7fe2cf', '#b4baff', '#ff9ba6', '#b7d683', '#89c9ff', '#e8a7df', '#f7b58c'];
 const UNIT_TITLES = new Map([['lx', 'Beleuchtungsstärke'], ['°C', 'Temperatur'], ['°F', 'Temperatur'], ['W', 'Leistung'], ['kW', 'Leistung'], ['%', 'Prozentwerte']]);
 const WIDTH = 1000;
-const css = new URL('./history-chart.css?v=1.3.1', import.meta.url).href;
+const css = new URL('./history-chart.css?v=1.4.0', import.meta.url).href;
 const icon = name => `<ha-icon icon="mdi:${name}" aria-hidden="true"></ha-icon>`;
-const number = new Intl.NumberFormat('de-DE', { maximumSignificantDigits: 5 });
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const tint = color => `style="--series:${color}"`;
-const duration = hours => {
-  if (hours >= 24 && hours % 24 === 0) return `${hours / 24} T`;
+const duration = (hours, t, number) => {
+  if (hours >= 24 && hours % 24 === 0) return `${t("{{count}} T", { count: number(hours / 24) })}`;
   const minutes = Math.round(hours * 60);
-  if (minutes < 60) return `${minutes} Min`;
-  return `${Math.floor(minutes / 60)} Std${minutes % 60 ? ` ${minutes % 60} Min` : ''}`;
+  if (minutes < 60) return `${t("{{count}} Min", { count: number(minutes) })}`;
+  return `${t("{{count}} Std", { count: number(Math.floor(minutes / 60)) })}${minutes % 60 ? ` ${t("{{count}} Min", { count: number(minutes % 60) })}` : ''}`;
 };
 
 class ActivityHistoryChart extends HTMLElement {
+  get locale() { return activityLocale(this.hass); }
+  get translate() { return activityTranslator(this.locale); }
+  get hour12() {
+    const format = this.hass?.locale?.time_format;
+    return format === '12' ? true : format === '24' ? false : undefined;
+  }
+  number(value) { return activityNumber(this.locale, value, 5); }
+
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -97,7 +105,10 @@ class ActivityHistoryChart extends HTMLElement {
     const previous = this.hass;
     this.hass = hass;
     this.now = now;
-    if (previous?.config?.time_zone !== hass.config?.time_zone) this.formatter = null;
+    const formatChanged = activityLocale(previous) !== this.locale
+      || previous?.config?.time_zone !== hass.config?.time_zone
+      || previous?.locale?.time_format !== hass.locale?.time_format;
+    if (formatChanged) this.formatter = null;
     const key = `engelsoft-activity-chart:${hass.user?.id || 'local'}`;
     if (this.key !== key || previous?.connection !== hass.connection) {
       previous?.connection.removeEventListener('ready', this.onReady);
@@ -107,7 +118,7 @@ class ActivityHistoryChart extends HTMLElement {
       clearTimeout(this.loadTimer);
       this.needsLoad = true;
       this.notifySelection();
-    } else if (previous.themes?.darkMode !== hass.themes?.darkMode) this.render();
+    } else if (formatChanged || previous.themes?.darkMode !== hass.themes?.darkMode) this.render();
     if (this.needsLoad && !this.hidden) void this.load();
   }
 
@@ -148,7 +159,8 @@ class ActivityHistoryChart extends HTMLElement {
   }
 
   date(time) {
-    const formatter = this.formatter ??= new Intl.DateTimeFormat('de-DE', {
+    const formatter = this.formatter ??= new Intl.DateTimeFormat(this.locale, {
+      hour12: this.hour12,
       timeZone: this.hass?.config?.time_zone,
       day: '2-digit', month: '2-digit', year: 'numeric',
       hour: '2-digit', minute: '2-digit', second: '2-digit',
@@ -159,7 +171,7 @@ class ActivityHistoryChart extends HTMLElement {
   pin(marker) {
     if (!this.ids.includes(marker.id)) {
       if (this.ids.length >= SERIES_LIMIT) {
-        this.feedback = 'Der Chart ist voll. Entferne eine Entität und füge das Ereignis erneut hinzu.';
+        this.feedback = "Der Chart ist voll. Entferne eine Entität und füge das Ereignis erneut hinzu.";
         this.render();
         return;
       }
@@ -290,7 +302,7 @@ class ActivityHistoryChart extends HTMLElement {
       this.data = Object.fromEntries(ids.map(id => [id, historyPoints(rows?.[id], start, end)]));
     } catch {
       if (request !== this.request) return;
-      this.error = 'Der Verlauf konnte nicht geladen werden. Bitte versuche es erneut.';
+      this.error = "Der Verlauf konnte nicht geladen werden. Bitte versuche es erneut.";
     } finally {
       clearTimeout(timeout);
       if (request === this.request) {
@@ -358,16 +370,17 @@ class ActivityHistoryChart extends HTMLElement {
   }
 
   export() {
+    const t = this.translate;
     const quote = value => '"' + String(value).replace(/^[=+@\-\t\r\n]/, "'$&").replaceAll('"', '""') + '"';
-    const rows = [['Zeit (UTC)', 'Entität', 'Name', 'Zustand', 'Einheit', 'Art']];
+    const rows = [[t("Zeit (UTC)"), t("Entität"), t("Name"), t("Zustand"), t("Einheit"), t("Art")]];
     for (const id of this.ids.filter(id => !this.hiddenSeries.has(id))) {
       const unit = this.hass.states?.[id]?.attributes?.unit_of_measurement || '';
       for (const { time, state } of this.data[id] || []) {
-        rows.push([new Date(time).toISOString(), id, this.name(id), state, unit, 'Verlauf']);
+        rows.push([new Date(time).toISOString(), id, this.name(id), state, unit, t("Verlauf")]);
       }
     }
     for (const marker of this.rangeMarkers()) {
-      rows.push([new Date(marker.time).toISOString(), marker.id, this.name(marker.id), marker.label, '', 'Ereignis']);
+      rows.push([new Date(marker.time).toISOString(), marker.id, this.name(marker.id), marker.label, '', t("Ereignis")]);
     }
     const url = URL.createObjectURL(new Blob(['\uFEFF' + rows.map(row => row.map(quote).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
     const link = document.createElement('a');
@@ -398,14 +411,15 @@ class ActivityHistoryChart extends HTMLElement {
   }
 
   readout(series, time) {
+    const t = this.translate;
     const state = valueAt(series.points, time);
-    if (!available(state)) return ({ unknown: 'Unbekannt', unavailable: 'Nicht verfügbar' })[state] || '–';
-    if (series.numeric) return `${number.format(Number(state))}${series.unit ? ' ' + series.unit : ''}`;
+    if (!available(state)) return ({ unknown: t("Unbekannt"), unavailable: t("Nicht verfügbar") })[state] || '–';
+    if (series.numeric) return `${this.number(Number(state))}${series.unit ? ' ' + series.unit : ''}`;
     const entity = this.hass?.states?.[series.id];
     if (entity && this.hass.formatEntityState) {
       try { return this.hass.formatEntityState({ ...entity, state }, state); } catch { /* Raw state below. */ }
     }
-    return ({ on: 'Ein', off: 'Aus', open: 'Offen', closed: 'Geschlossen' })[state] || state;
+    return ({ on: t("Ein"), off: t("Aus"), open: t("Offen"), closed: t("Geschlossen") })[state] || state;
   }
 
   moveCursor(position) {
@@ -429,31 +443,34 @@ class ActivityHistoryChart extends HTMLElement {
   }
 
   picker() {
+    const t = this.translate;
     const states = this.hass?.states;
-    if (this.optionStates !== states) {
+    if (this.optionStates !== states || this.optionLocale !== this.locale) {
       this.optionStates = states;
-      this.options = Object.keys(states || {}).sort((a, b) => this.name(a).localeCompare(this.name(b), 'de'));
+      this.optionLocale = this.locale;
+      this.options = Object.keys(states || {}).sort((a, b) => this.name(a).localeCompare(this.name(b), this.locale));
     }
-    const query = this.query.toLocaleLowerCase('de').trim();
+    const query = this.query.toLocaleLowerCase(this.locale).trim();
     const candidates = (this.options || []).filter(id => !this.ids.includes(id) &&
-      `${this.name(id)} ${id}`.toLocaleLowerCase('de').includes(query));
-    return `<details class="picker" data-key="entity-picker"><summary aria-label="Entität hinzufügen" title="Entität hinzufügen">${icon('plus')}<span>Entität hinzufügen</span></summary>
-      <div class="picker-panel"><input type="search" data-entity-search placeholder="Name oder Entitäts-ID" aria-label="Entitäten durchsuchen" value="${esc(this.query)}">
-      <p>${this.ids.length} von ${SERIES_LIMIT} Entitäten ausgewählt</p>
-      <div class="options">${candidates.slice(0, 60).map(id => `<button data-key="option-${esc(id)}" data-chart="add" data-entity="${esc(id)}" ${this.ids.length >= SERIES_LIMIT ? 'disabled' : ''}><span>${esc(this.name(id))}<small>${esc(id)}</small></span>${icon('plus')}</button>`).join('') || '<p>Keine passenden Entitäten.</p>'}</div>
-      ${candidates.length > 60 ? '<p>Die Suche grenzt die angezeigten Treffer ein.</p>' : ''}</div></details>`;
+      `${this.name(id)} ${id}`.toLocaleLowerCase(this.locale).includes(query));
+    return `<details class="picker" data-key="entity-picker"><summary aria-label="${esc(t("Entität hinzufügen"))}" title="${esc(t("Entität hinzufügen"))}">${icon('plus')}<span>${esc(t("Entität hinzufügen"))}</span></summary>
+      <div class="picker-panel"><input type="search" data-entity-search placeholder="${esc(t("Name oder Entitäts-ID"))}" aria-label="${esc(t("Entitäten durchsuchen"))}" value="${esc(this.query)}">
+      <p>${esc(t("{{count}} von {{total}} Entitäten ausgewählt", { count: this.number(this.ids.length), total: this.number(SERIES_LIMIT) }))}</p>
+      <div class="options">${candidates.slice(0, 60).map(id => `<button data-key="option-${esc(id)}" data-chart="add" data-entity="${esc(id)}" ${this.ids.length >= SERIES_LIMIT ? 'disabled' : ''}><span>${esc(this.name(id))}<small>${esc(id)}</small></span>${icon('plus')}</button>`).join('') || `<p>${esc(t("Keine passenden Entitäten."))}</p>`}</div>
+      ${candidates.length > 60 ? `<p>${esc(t("Die Suche grenzt die angezeigten Treffer ein."))}</p>` : ''}</div></details>`;
   }
 
   card(series, time) {
+    const t = this.translate;
     const { id, name, color, points, numeric, unit } = series;
     const hidden = this.hiddenSeries.has(id);
-    const reading = hidden ? 'Ausgeblendet' : this.readout(series, time);
+    const reading = hidden ? t("Ausgeblendet") : this.readout(series, time);
     const { min, max } = numeric ? extent(points) : {};
-    const summary = numeric ? (min === max ? 'Konstant' : `${number.format(min)}–${number.format(max)}${unit ? ' ' + unit : ''}`)
-      : points.length ? 'Zustandsverlauf' : this.loading ? 'Verlauf wird geladen …' : 'Keine Daten im Zeitraum';
+    const summary = numeric ? (min === max ? t("Konstant") : `${this.number(min)}–${this.number(max)}${unit ? ' ' + unit : ''}`)
+      : points.length ? t("Zustandsverlauf") : this.loading ? t("Verlauf wird geladen …") : t("Keine Daten im Zeitraum");
     return `<article class="series" data-key="series-${esc(id)}" ${tint(color)}>
-      <div class="series-header"><button class="series-toggle" data-chart="toggle" data-entity="${esc(id)}" aria-pressed="${!hidden}" aria-label="${esc(name)} ${hidden ? 'einblenden' : 'ausblenden'}" title="${esc(name + ' · ' + id)}"><i></i><span>${esc(name)}</span></button>
-      <button class="remove" data-chart="remove" data-entity="${esc(id)}" aria-label="${esc(name)} aus dem Chart entfernen" title="${esc(name)} aus dem Chart entfernen">${icon('close')}</button></div>
+      <div class="series-header"><button class="series-toggle" data-chart="toggle" data-entity="${esc(id)}" aria-pressed="${!hidden}" aria-label="${esc(t(hidden ? "{{name}} einblenden" : "{{name}} ausblenden", { name }))}" title="${esc(name + ' · ' + id)}"><i></i><span>${esc(name)}</span></button>
+      <button class="remove" data-chart="remove" data-entity="${esc(id)}" aria-label="${esc(t("{{name}} aus dem Chart entfernen", { name }))}" title="${esc(t("{{name}} aus dem Chart entfernen", { name }))}">${icon('close')}</button></div>
       <div class="series-reading"><strong data-reading="${esc(id)}" title="${esc(reading)}">${esc(reading)}</strong><small title="${esc(summary)}">${esc(summary)}</small></div></article>`;
   }
 
@@ -464,6 +481,7 @@ class ActivityHistoryChart extends HTMLElement {
   }
 
   numericPlot(series, unit, x) {
+    const t = this.translate;
     const ranges = series.map(item => extent(item.points));
     const low = Math.min(...ranges.map(range => range.min));
     const high = Math.max(...ranges.map(range => range.max));
@@ -476,11 +494,11 @@ class ActivityHistoryChart extends HTMLElement {
     const grid = ticks.map(value => `<path class="gridline" d="M0 ${y(value)}H${WIDTH}"/>`).join('');
     const lines = series.map(item => `<path class="curve" ${tint(item.color)} d="${steppedPath(item.points, this.end, x, y)}"/>`).join('');
     const plotScale = 1 + (series.length - 1) / 10;
-    const title = series.length === 1 ? series[0].name : UNIT_TITLES.get(unit) || 'Messwerte';
+    const title = series.length === 1 ? series[0].name : t(UNIT_TITLES.get(unit) || "Messwerte");
     return `<section class="graph" style="--plot-scale:${plotScale}"><div class="graph-heading"><h3>${esc(title)}</h3>
-      <span>${esc([unit, series.length > 1 ? `${series.length} Kurven` : '', low === high ? 'Konstant' : ''].filter(Boolean).join(' · '))}</span></div><div class="plot-row">
-      <div class="scale">${ticks.map(value => `<span style="top:${Number(y(value)) / height * 100}%">${esc(number.format(value))}</span>`).join('')}</div>
-      ${this.plot(grid + lines, height, unit || 'Messwerte')}</div></section>`;
+      <span>${esc([unit, series.length > 1 ? t("{{count}} Kurven", { count: this.number(series.length) }) : '', low === high ? t("Konstant") : ''].filter(Boolean).join(' · '))}</span></div><div class="plot-row">
+      <div class="scale">${ticks.map(value => `<span style="top:${Number(y(value)) / height * 100}%">${esc(this.number(value))}</span>`).join('')}</div>
+      ${this.plot(grid + lines, height, unit || t("Messwerte"))}</div></section>`;
   }
 
   statePlot(series, x) {
@@ -499,6 +517,7 @@ class ActivityHistoryChart extends HTMLElement {
   }
 
   graphs(series, time) {
+    const t = this.translate;
     const x = stamp => Math.round(this.position(stamp) * WIDTH * 100) / 100;
     const groups = new Map();
     const states = [];
@@ -508,52 +527,54 @@ class ActivityHistoryChart extends HTMLElement {
     }
     const markers = this.rangeMarkers();
     return `<div class="graphs" style="--cursor:${this.position(time) * 100}%;--pan-offset:${this.pan?.offset ?? this.panOffset ?? 0}px">
-      <div class="chart-load" role="status" aria-label="Verlauf wird geladen" ${this.loading ? '' : 'hidden'}></div>
-      ${this.markers.length ? `<div class="plot-row marker-row" ${markers.length ? '' : 'aria-hidden="true"'}><span>Ereignis</span><div class="marker-track">${markers.map(marker => `<button style="--at:${this.position(marker.time) * 100}%" data-chart="marker" data-value="${esc(marker.key)}" aria-label="${esc(marker.label + ' · ' + this.date(marker.time))}" title="${esc(marker.label)}">${icon('map-marker')}</button>`).join('')}</div></div>` : ''}
+      <div class="chart-load" role="status" aria-label="${esc(t("Verlauf wird geladen"))}" ${this.loading ? '' : 'hidden'}></div>
+      ${this.markers.length ? `<div class="plot-row marker-row" ${markers.length ? '' : 'aria-hidden="true"'}><span>${esc(t("Ereignis"))}</span><div class="marker-track">${markers.map(marker => `<button style="--at:${this.position(marker.time) * 100}%" data-chart="marker" data-value="${esc(marker.key)}" aria-label="${esc(marker.label + ' · ' + this.date(marker.time))}" title="${esc(marker.label)}">${icon('map-marker')}</button>`).join('')}</div></div>` : ''}
       <div class="graph-grid">${[...groups].map(([unit, items]) => this.numericPlot(items, unit, x)).join('')}
       ${states.map(item => this.statePlot(item, x)).join('')}</div>
-      <label class="cursor-control"><span>Messzeitpunkt <b class="cursor-time">${this.date(time)}</b></span><input data-cursor type="range" min="0" max="${WIDTH}" value="${Math.round(this.position(time) * WIDTH)}" aria-label="Messzeitpunkt" aria-valuetext="${this.date(time)}"></label>
+      <label class="cursor-control"><span>${esc(t("Messzeitpunkt"))} <b class="cursor-time">${this.date(time)}</b></span><input data-cursor type="range" min="0" max="${WIDTH}" value="${Math.round(this.position(time) * WIDTH)}" aria-label="${esc(t("Messzeitpunkt"))}" aria-valuetext="${this.date(time)}"></label>
       </div>`;
   }
 
   markerList() {
+    const t = this.translate;
     if (!this.markers.length) return '';
-    return `<section class="events"><h3>Markierte Aktivitäten <span>${this.markers.length}</span></h3><ul>
+    return `<section class="events"><h3>${esc(t("Markierte Aktivitäten"))} <span>${this.number(this.markers.length)}</span></h3><ul>
       ${this.markers.map(marker => `<li data-key="mark-${esc(marker.key)}"><button data-chart="marker" data-value="${esc(marker.key)}">${icon('map-marker-outline')}<span><b>${esc(this.name(marker.id))}</b><small>${this.date(marker.time)} · ${esc(marker.label)}</small></span></button>
-      <button class="remove" data-chart="forget" data-value="${esc(marker.key)}" aria-label="Markierung vom ${this.date(marker.time)} entfernen">${icon('close')}</button></li>`).join('')}</ul></section>`;
+      <button class="remove" data-chart="forget" data-value="${esc(marker.key)}" aria-label="${esc(t("Markierung vom {{time}} entfernen", { time: this.date(marker.time) }))}">${icon('close')}</button></li>`).join('')}</ul></section>`;
   }
 
   render() {
+    const t = this.translate;
     const series = this.series();
     const visible = series.filter(item => !this.hiddenSeries.has(item.id));
     const drawable = visible.filter(item => item.points.some(point => available(point.state)));
     const time = clamp(this.cursor ?? this.end, this.start, this.end);
     const button = (action, label, glyph, disabled = false) =>
       `<button class="tool" data-chart="${action}" aria-label="${label}" title="${label}" ${disabled ? 'disabled' : ''}>${icon(glyph)}</button>`;
-    const empty = this.loading ? 'Verlauf wird geladen …' : this.error || (series.length === 0 ? 'Dein Verlauf beginnt hier.'
-      : visible.length === 0 ? 'Alle Entitäten sind ausgeblendet.' : 'Keine darstellbaren Zustände in diesem Zeitraum.');
+    const empty = this.loading ? t("Verlauf wird geladen …") : (this.error && t(this.error)) || (series.length === 0 ? t("Dein Verlauf beginnt hier.")
+      : visible.length === 0 ? t("Alle Entitäten sind ausgeblendet.") : t("Keine darstellbaren Zustände in diesem Zeitraum."));
     const showGraphs = drawable.length > 0 || this.rangeMarkers().length > 0;
-    updateDOM(this.shadowRoot, `<link rel="stylesheet" href="${css}"><section class="history">
-      <div class="toolbar"><div class="periods" role="group" aria-label="Chart-Zeitraum">
-        ${PERIODS.map(hours => `<button data-chart="period" data-value="${hours}" aria-pressed="${hours === this.hours}">${duration(hours)}</button>`).join('')}
-        ${PERIODS.includes(this.hours) ? '' : `<span>${duration(this.hours)}</span>`}</div>
+    updateDOM(this.shadowRoot, `<link rel="stylesheet" href="${css}"><section class="history" lang="${activityLanguage(this.locale)}">
+      <div class="toolbar"><div class="periods" role="group" aria-label="${esc(t("Chart-Zeitraum"))}">
+        ${PERIODS.map(hours => `<button data-chart="period" data-value="${hours}" aria-pressed="${hours === this.hours}">${duration(hours, t, value => this.number(value))}</button>`).join('')}
+        ${PERIODS.includes(this.hours) ? '' : `<span>${duration(this.hours, t, value => this.number(value))}</span>`}</div>
         <div class="tools">
-          <div class="tool-group" role="group" aria-label="Zeitnavigation">
-          ${button('back', 'Vorheriger Chart-Zeitraum', 'chevron-left', !series.length)}
-          ${button('forward', 'Nächster Chart-Zeitraum', 'chevron-right', !series.length || this.anchor === null || this.anchor >= this.now() - 1000)}
-          <button data-chart="now" ${series.length ? '' : 'disabled'}>Jetzt</button>
+          <div class="tool-group" role="group" aria-label="${esc(t("Zeitnavigation"))}">
+          ${button('back', t("Vorheriger Chart-Zeitraum"), 'chevron-left', !series.length)}
+          ${button('forward', t("Nächster Chart-Zeitraum"), 'chevron-right', !series.length || this.anchor === null || this.anchor >= this.now() - 1000)}
+          <button data-chart="now" ${series.length ? '' : 'disabled'}>${esc(t("Jetzt"))}</button>
           </div><div class="tool-group" role="group" aria-label="Zoom">
-          ${button('in', 'Hineinzoomen', 'magnify-plus-outline', !series.length || this.hours <= .25)}
-          ${button('out', 'Herauszoomen', 'magnify-minus-outline', !series.length || this.hours >= 168)}
-          </div><div class="tool-group" role="group" aria-label="Daten">
-          ${button('refresh', 'Chart aktualisieren', 'refresh', !series.length)}
-          ${button('export', 'Chart als CSV exportieren', 'download-outline', !showGraphs || this.loading || !!this.error)}
+          ${button('in', t("Hineinzoomen"), 'magnify-plus-outline', !series.length || this.hours <= .25)}
+          ${button('out', t("Herauszoomen"), 'magnify-minus-outline', !series.length || this.hours >= 168)}
+          </div><div class="tool-group" role="group" aria-label="${esc(t("Daten"))}">
+          ${button('refresh', t("Chart aktualisieren"), 'refresh', !series.length)}
+          ${button('export', t("Chart als CSV exportieren"), 'download-outline', !showGraphs || this.loading || !!this.error)}
           </div>
         </div>${this.picker()}</div>
-      ${this.feedback ? `<p class="feedback" role="status">${esc(this.feedback)}</p>` : ''}
+      ${this.feedback ? `<p class="feedback" role="status">${esc(t(this.feedback))}</p>` : ''}
       ${series.length ? `<div class="series-grid">${series.map(item => this.card(item, time)).join('')}</div>` : ''}
-      ${showGraphs && this.error ? `<p class="feedback" role="alert">${esc(this.error)}</p>` : ''}
-      ${showGraphs ? this.graphs(drawable, time) : `<div class="chart-empty" role="status">${icon(this.loading ? 'timer-sand' : 'chart-line')}<b>${esc(empty)}</b>${!series.length ? '<p>Füge oben eine Entität hinzu oder übernimm ein Ereignis direkt aus der Zeitleiste.</p>' : ''}</div>`}
+      ${showGraphs && this.error ? `<p class="feedback" role="alert">${esc(t(this.error))}</p>` : ''}
+      ${showGraphs ? this.graphs(drawable, time) : `<div class="chart-empty" role="status">${icon(this.loading ? 'timer-sand' : 'chart-line')}<b>${esc(empty)}</b>${!series.length ? `<p>${esc(t("Füge oben eine Entität hinzu oder übernimm ein Ereignis direkt aus der Zeitleiste."))}</p>` : ''}</div>`}
       ${this.markerList()}
     </section>`);
     this.renderedSeries = visible;

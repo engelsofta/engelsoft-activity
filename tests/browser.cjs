@@ -287,4 +287,25 @@ await panel.evaluate(el=>{el.hass={...el.hass,user:{...el.hass.user,is_admin:fal
 await panel.locator('.event-main').first().click();
 assert.equal(await panel.locator('.trace-link').count(),0);
 assert.equal(await page.evaluate(()=>demo.requests.filter(r=>r.type==='trace/list').length),3);
+// A language change should update the existing panel and chart without a reload.
+const chart = panel.locator('engelsoft-activity-history');
+const setLocale = (language, time_format) => panel.evaluate((el, locale) => {
+  el.hass = { ...el.hass, language: 'de', locale };
+}, { language, time_format });
+await setLocale('de-DE', '24');
+const sampleTime = Date.UTC(2026, 10, 25, 14, 30);
+assert.equal(await panel.evaluate((el, time) => el.time(time), sampleTime), '15:30');
+assert.equal(await chart.evaluate(el => el.number(23.5)), '23,5');
+await setLocale('en-US', '12');
+assert.equal(await panel.locator('[data-search]').getAttribute('aria-label'), 'Search activity');
+assert.equal(await panel.locator('.detail h2').textContent(), 'Event details');
+assert.equal(await chart.locator('.picker summary').textContent(), 'Add entity');
+assert.equal(await panel.evaluate((el, time) => el.time(time), sampleTime), '03:30 PM');
+assert.match(await chart.evaluate((el, time) => el.date(time), sampleTime), /^11\/25\/2026/);
+assert.equal(await chart.evaluate(el => el.number(23.5)), '23.5');
+await setLocale('fr-FR', '24');
+assert.equal(await chart.locator('.picker summary').textContent(), 'Add entity');
+assert.equal(await chart.evaluate(el => el.number(23.5)), '23,5');
+await setLocale('de-DE', '24');
+assert.equal(await chart.locator('.picker summary').textContent(), 'Entität hinzufügen');
 await panel.evaluate(el=>el.remove());await page.waitForTimeout(30);assert.equal(await page.evaluate(()=>demo.subscriptions),await page.evaluate(()=>demo.unsubscribed));assert.deepEqual(errors,[]);console.log('Synthetic browser checks passed: loading completion, live updates, responsive layout, multiselect, search, period, details, favorites, themes, cleanup.');}finally{await browser.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

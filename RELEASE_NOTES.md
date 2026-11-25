@@ -1,8 +1,6 @@
-**🪄 We taught your charts to sit still.**
+### Added
 
-### Fixed
-
-- Changing the time range, zooming, refreshing, or dragging keeps the current chart visible while the next history window loads. A slim gold loading bar shows when the chart is loading.
-- Entity cards keep the same height as you move the cursor. Long state names are shortened to fit, with the full text available in a tooltip.
+- The Activity panel and charts follow your Home Assistant language. German and English are available, with English as the fallback.
+- Dates, times, and numbers follow your locale, and the panel respects your 12- or 24-hour time preference.
 
 Restart Home Assistant and reload the browser after updating.

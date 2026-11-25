@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/engelsofta/engelsoft-activity/releases/latest"><img src="https://img.shields.io/badge/Version-v1.3.1-e7c65a" alt="Latest release"></a>
+  <a href="https://github.com/engelsofta/engelsoft-activity/releases/latest"><img src="https://img.shields.io/badge/Version-v1.4.0-e7c65a" alt="Latest release"></a>
   <a href="https://www.home-assistant.io/"><img src="https://img.shields.io/badge/Home%20Assistant-2026.11.0%2B-78b6dd" alt="Home Assistant 2026.11.0 or newer"></a>
   <a href="https://my.home-assistant.io/redirect/marketplace_repository/?owner=engelsofta&amp;repository=engelsoft-activity&amp;category=integration"><img src="https://img.shields.io/badge/Home%20Assistant-Marketplace-78b6dd" alt="Open in Home Assistant Marketplace"></a>
   <a href="https://github.com/engelsofta/engelsoft-activity/releases"><img src="https://img.shields.io/github/downloads/engelsofta/engelsoft-activity/total?label=Downloads&amp;color=8ba83e" alt="Release downloads"></a>
@@ -75,7 +75,7 @@ After updating, restart Home Assistant and reload your browser.
 
 No telemetry or external runtime services. Favorites, hidden-entity preferences, chart selections and up to 24 activity markers stay in your browser, separated by Home Assistant user. CSV exports can contain private activity data.
 
-The timeline uses the Home Assistant logbook. The comparison chart uses recorded entity states and the current entity units. Both follow Home Assistant retention, exclusions and permissions. Room information uses the current registry. The panel interface currently uses **German labels**; setup supports English and German.
+The timeline uses the Home Assistant logbook. The comparison chart uses recorded entity states and the current entity units. Both follow Home Assistant retention, exclusions and permissions. Room information uses the current registry. The panel follows your Home Assistant language for German and English labels, with English as the fallback for other languages. Dates and numbers use your locale.
 
 This is a community integration, not an official Home Assistant product.
 

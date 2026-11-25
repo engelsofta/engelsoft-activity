@@ -11,10 +11,10 @@ export function mergeEvents(existing, incoming, start, end) {
 }
 export const domainOf = e => e.entity_id?.split('.')[0] || e.domain || 'event';
 // Short labels for known Shelly button events; retain unknown messages verbatim.
-export function conciseEventLabel(event, fallback) {
+export function conciseEventLabel(event, fallback, t = message => message) {
   const message=String(event.message??'');
   const match=message.match(/^['"]?(single_push|double_push|triple_push|long_push|btn_up|btn_down)['"]? click event for .+ was fired\s*$/i);
-  if(match)return ({single_push:'Taste kurz gedrückt',double_push:'Taste doppelt gedrückt',triple_push:'Taste dreifach gedrückt',long_push:'Taste lange gedrückt',btn_up:'Taste losgelassen',btn_down:'Taste gedrückt'})[match[1].toLowerCase()];
+  if(match)return ({single_push:t("Taste kurz gedrückt"),double_push:t("Taste doppelt gedrückt"),triple_push:t("Taste dreifach gedrückt"),long_push:t("Taste lange gedrückt"),btn_up:t("Taste losgelassen"),btn_down:t("Taste gedrückt")})[match[1].toLowerCase()];
   return fallback;
 }
 export function category(e,entity) {
@@ -23,11 +23,11 @@ export function category(e,entity) {
   return 'state';
 }
 const selectedMatch=(selected,value)=>Array.isArray(selected)?!selected.length||selected.includes(value):!selected||selected===value;
-export function filterEvents(events, filters, meta) {
-  const q=filters.query.trim().toLocaleLowerCase('de');
+export function filterEvents(events, filters, meta, locale = 'de') {
+  const q=filters.query.trim().toLocaleLowerCase(locale);
   return events.filter(e=>{
     const m=meta(e),id=e.entity_id;
-    return (!q || `${m.name} ${id||''} ${e.state||''} ${e.message||''} ${m.area} ${m.integration} ${e.context_name||''}`.toLocaleLowerCase('de').includes(q))
+    return (!q || `${m.name} ${id||''} ${e.state||''} ${e.message||''} ${m.area} ${m.integration} ${e.context_name||''}`.toLocaleLowerCase(locale).includes(q))
       && (!filters.kind || filters.kind==='all' || category(e,m.entity)===filters.kind)
       && selectedMatch(filters.domain,domainOf(e))
       && selectedMatch(filters.area,m.areaId)
@@ -85,15 +85,15 @@ export function previousStates(events){
   const group=new Map();for(let k=i;k<j;k++){const e=ordered[k];if(!group.has(e.entity_id))group.set(e.entity_id,e.state);else if(group.get(e.entity_id)!==e.state)group.set(e.entity_id,null);}for(const [id,state] of group)last.set(id,state);i=j;
  }return result;
 }
-export function eventImportance(event,entity){
+export function eventImportance(event,entity,t = message => message){
  const state=String(event.state??'').toLowerCase(),domain=domainOf(event),dc=entity?.attributes?.device_class;
- if(['unavailable','offline','disconnected'].includes(state))return 'Nicht verfügbar';
- if(state==='unknown')return 'Zustand unbekannt';
- if(['triggered','jammed','error','fault','alarm'].includes(state))return 'Alarm / Störung';
- if(domain==='binary_sensor'&&state==='off'&&dc==='connectivity')return 'Verbindung unterbrochen';
- if(domain==='binary_sensor'&&state==='on'&&['smoke','gas','moisture','problem','safety','tamper'].includes(dc))return 'Alarm / Störung';
- if(domain==='binary_sensor'&&state==='on'&&dc==='battery')return 'Batterie niedrig';
- if(domain==='sensor'&&dc==='battery'&&entity?.attributes?.unit_of_measurement==='%'&&state.trim()!==''&&Number.isFinite(Number(state))&&Number(state)>=0&&Number(state)<=20)return 'Batterie niedrig (≤ 20 %)';
+ if(['unavailable','offline','disconnected'].includes(state))return t("Nicht verfügbar");
+ if(state==='unknown')return t("Zustand unbekannt");
+ if(['triggered','jammed','error','fault','alarm'].includes(state))return t("Alarm / Störung");
+ if(domain==='binary_sensor'&&state==='off'&&dc==='connectivity')return t("Verbindung unterbrochen");
+ if(domain==='binary_sensor'&&state==='on'&&['smoke','gas','moisture','problem','safety','tamper'].includes(dc))return t("Alarm / Störung");
+ if(domain==='binary_sensor'&&state==='on'&&dc==='battery')return t("Batterie niedrig");
+ if(domain==='sensor'&&dc==='battery'&&entity?.attributes?.unit_of_measurement==='%'&&state.trim()!==''&&Number.isFinite(Number(state))&&Number(state)>=0&&Number(state)<=20)return t("Batterie niedrig (≤ 20 %)");
  return '';
 }
 
